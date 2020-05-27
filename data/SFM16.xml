@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EM_TF>
+   <Description>Magnetotelluric Transfer Functions</Description>
+   <ProductId>USGS.SFM16.2019</ProductId>
+   <SubType>MT_TF</SubType>
+   <Notes>Written from Matlab. Original format:</Notes>
+   <Tags>impedance</Tags>
+   <PrimaryData/>
+   <Attachment/>
+   <Provenance>
+      <CreateTime>2020-05-26T16:18:19</CreateTime>
+      <CreatingApplication>mttf.write_xml in Matlab; author Anna Kelbert</CreatingApplication>
+   </Provenance>
+   <Copyright>Paul Bedrosian's cleaned up wideband data in MO-AR-TN-IL-KY</Copyright>
+   <Site>
+      <Id>SFM16</Id>
+      <Name>SFM16</Name>
+      <Project>USGS</Project>
+      <Survey>Wideband MO-AR-TN-IL-KY</Survey>
+      <YearCollected>2019</YearCollected>
+      <Location>
+         <Latitude>37.7533</Latitude>
+         <Longitude>-88.7816</Longitude>
+         <Elevation units="meters">0</Elevation>
+      </Location>
+      <Orientation angle_to_geographic_north="">Orthogonal</Orientation>
+      <Start>2019-01-01T00:00:00</Start>
+      <End>2019-12-31T24:00:00</End>
+   </Site>
+   <ProcessingInfo>
+      <SignConvention>exp(+ i\omega mu)</SignConvention>
+      <ProcessingTag>SFM16</ProcessingTag>
+   </ProcessingInfo>
+   <SiteLayout>
+      <InputChannels>
+         <Magnetic name="Hx" orientation="0"/>
+         <Magnetic name="Hy" orientation="90"/>
+      </InputChannels>
+      <OutputChannels>
+         <Electric name="Ex" orientation="0"/>
+         <Electric name="Ey" orientation="90"/>
+      </OutputChannels>
+   </SiteLayout>
+   <Data count="27">
+      <Period units="secs" value="0.0104">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-5.004900000e+00 -4.886900000e+00</value>
+            <value input="Hy" name="Zxy" output="Ex">8.111300000e+01 7.981400000e+01</value>
+            <value input="Hx" name="Zyx" output="Ey">-6.552100000e+01 -7.002100000e+01</value>
+            <value input="Hy" name="Zyy" output="Ey">9.086900000e+00 9.330200000e+00</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">5.456363648e+01</value>
+            <value input="Hy" name="Zxy" output="Ex">5.456363648e+01</value>
+            <value input="Hx" name="Zyx" output="Ey">5.456363648e+01</value>
+            <value input="Hy" name="Zyy" output="Ey">5.456363648e+01</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="0.0208">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-3.986400000e+00 -3.587600000e+00</value>
+            <value input="Hy" name="Zxy" output="Ex">6.390800000e+01 5.826600000e+01</value>
+            <value input="Hx" name="Zyx" output="Ey">-4.727600000e+01 -5.090100000e+01</value>
+            <value input="Hy" name="Zyy" output="Ey">8.880400000e+00 8.181000000e+00</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">3.003900050e+01</value>
+            <value input="Hy" name="Zxy" output="Ex">3.003900050e+01</value>
+            <value input="Hx" name="Zyx" output="Ey">3.003900050e+01</value>
+            <value input="Hy" name="Zyy" output="Ey">3.003900050e+01</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="0.0417">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.454500000e-01 -1.324800000e+00</value>
+            <value input="Hy" name="Zxy" output="Ex">4.373000000e+01 4.757600000e+01</value>
+            <value input="Hx" name="Zyx" output="Ey">-3.081400000e+01 -3.698800000e+01</value>
+            <value input="Hy" name="Zyy" output="Ey">4.596800000e+00 5.056100000e+00</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">1.555481088e+01</value>
+            <value input="Hy" name="Zxy" output="Ex">1.555481088e+01</value>
+            <value input="Hx" name="Zyx" output="Ey">1.555481088e+01</value>
+            <value input="Hy" name="Zyy" output="Ey">1.555481088e+01</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="0.0833">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">5.813100000e-01 -5.594200000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">2.475700000e+01 3.206800000e+01</value>
+            <value input="Hx" name="Zyx" output="Ey">-1.837800000e+01 -2.440900000e+01</value>
+            <value input="Hy" name="Zyy" output="Ey">2.346400000e+00 2.898300000e+00</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">6.188865620e+00</value>
+            <value input="Hy" name="Zxy" output="Ex">6.188865620e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">6.188865620e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">6.188865620e+00</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="0.167">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-8.687000000e-01 -1.565800000e+00</value>
+            <value input="Hy" name="Zxy" output="Ex">1.885000000e+01 2.142600000e+01</value>
+            <value input="Hx" name="Zyx" output="Ey">-1.337400000e+01 -1.571100000e+01</value>
+            <value input="Hy" name="Zyy" output="Ey">4.015600000e+00 2.635700000e+00</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">2.944193780e+00</value>
+            <value input="Hy" name="Zxy" output="Ex">4.447354880e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">2.944193780e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">2.944193780e+00</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="0.333">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">NaN NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">1.860300000e+01 2.588800000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-1.147700000e+01 -8.501500000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN NaN</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">6.875373620e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">1.341325447e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="0.667">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">NaN NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">-9.243900000e+00 -2.277000000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN NaN</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">1.141832496e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="1.33">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-2.262800000e-01 1.160700000e+00</value>
+            <value input="Hy" name="Zxy" output="Ex">1.025500000e+01 2.402100000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-7.252800000e+00 -1.387600000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">2.081300000e+00 2.304100000e+00</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">3.888738050e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">3.888738050e-01</value>
+            <value input="Hx" name="Zyx" output="Ey">3.888738050e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">3.888738050e-01</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="2.67">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-2.561400000e-01 1.278000000e+00</value>
+            <value input="Hy" name="Zxy" output="Ex">9.737200000e+00 1.600600000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-7.380700000e+00 -1.208800000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">9.968500000e-01 1.151700000e+00</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">3.690092232e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">3.690092232e-01</value>
+            <value input="Hx" name="Zyx" output="Ey">3.690092232e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">3.690092232e-01</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="5.33">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.320800000e+00 -2.665200000e-03</value>
+            <value input="Hy" name="Zxy" output="Ex">9.076000000e+00 2.046600000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-7.087700000e+00 -2.352100000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">1.710300000e+00 1.022900000e+00</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">9.162518450e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">9.947551250e-01</value>
+            <value input="Hx" name="Zyx" output="Ey">1.043607939e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">1.675804474e+00</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="9.14">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.434200000e+00 4.395200000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">8.748400000e+00 2.611100000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-6.385500000e+00 -3.542800000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">8.243200000e-01 7.427100000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">3.333524552e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">3.333524552e-01</value>
+            <value input="Hx" name="Zyx" output="Ey">3.333524552e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">3.333524552e-01</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="19.7">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.859600000e+00 -4.120200000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">6.829900000e+00 2.995300000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-3.634600000e+00 -3.343000000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">9.210900000e-01 2.989200000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">1.841395298e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">1.841395298e-01</value>
+            <value input="Hx" name="Zyx" output="Ey">1.841395298e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">1.841395298e-01</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="33">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.459700000e+00 -2.482800000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">6.364900000e+00 2.689400000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-2.599900000e+00 -2.850100000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">7.787500000e-01 2.595900000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">1.332828450e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">1.332828450e-01</value>
+            <value input="Hx" name="Zyx" output="Ey">1.332828450e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">1.332828450e-01</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="53.9">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.447200000e+00 -8.539400000e-02</value>
+            <value input="Hy" name="Zxy" output="Ex">5.004900000e+00 2.564600000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-1.476000000e+00 -1.712200000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">8.497800000e-01 1.701900000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">6.356751680e-02</value>
+            <value input="Hy" name="Zxy" output="Ex">6.356751680e-02</value>
+            <value input="Hx" name="Zyx" output="Ey">6.356751680e-02</value>
+            <value input="Hy" name="Zyy" output="Ey">6.356751680e-02</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="102">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.538700000e+00 -1.108800000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">4.601800000e+00 2.487700000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-1.346100000e+00 -1.333200000e+00</value>
+            <value input="Hy" name="Zyy" output="Ey">8.384300000e-01 2.453600000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">4.955581620e-02</value>
+            <value input="Hy" name="Zxy" output="Ex">4.955581620e-02</value>
+            <value input="Hx" name="Zyx" output="Ey">4.955581620e-02</value>
+            <value input="Hy" name="Zyy" output="Ey">4.955581620e-02</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="171">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.394000000e+00 -4.993800000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">3.636100000e+00 2.241400000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-1.125800000e+00 -9.497300000e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">7.333200000e-01 2.924300000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">3.145533620e-02</value>
+            <value input="Hy" name="Zxy" output="Ex">3.145533620e-02</value>
+            <value input="Hx" name="Zyx" output="Ey">3.145533620e-02</value>
+            <value input="Hy" name="Zyy" output="Ey">3.145533620e-02</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="216">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.149900000e+00 -5.678700000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">2.973900000e+00 2.109800000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-9.150800000e-01 -8.007000000e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">6.032400000e-01 3.329900000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">2.216775680e-02</value>
+            <value input="Hy" name="Zxy" output="Ex">2.216775680e-02</value>
+            <value input="Hx" name="Zyx" output="Ey">2.216775680e-02</value>
+            <value input="Hy" name="Zyy" output="Ey">2.216775680e-02</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="341">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-1.055900000e+00 -5.864200000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">2.529300000e+00 2.027700000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-8.071200000e-01 -7.267500000e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">5.291500000e-01 3.077800000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">1.760438480e-02</value>
+            <value input="Hy" name="Zxy" output="Ex">1.760438480e-02</value>
+            <value input="Hx" name="Zyx" output="Ey">1.760438480e-02</value>
+            <value input="Hy" name="Zyy" output="Ey">1.760438480e-02</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="529">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-7.813600000e-01 -5.917200000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">1.881900000e+00 1.764200000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-6.044500000e-01 -6.283300000e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">4.294100000e-01 2.966100000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">1.124520051e-02</value>
+            <value input="Hy" name="Zxy" output="Ex">1.124520051e-02</value>
+            <value input="Hx" name="Zyx" output="Ey">1.124520051e-02</value>
+            <value input="Hy" name="Zyy" output="Ey">1.124520051e-02</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="683">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-6.740500000e-01 -6.367900000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">1.549400000e+00 1.723700000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-5.485500000e-01 -6.347600000e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">3.217700000e-01 3.163900000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">9.722035682e-03</value>
+            <value input="Hy" name="Zxy" output="Ex">9.722035682e-03</value>
+            <value input="Hx" name="Zyx" output="Ey">9.722035682e-03</value>
+            <value input="Hy" name="Zyy" output="Ey">9.722035682e-03</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="1090">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-4.371700000e-01 -6.211600000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">1.119200000e+00 1.461100000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-3.564400000e-01 -5.528800000e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">2.301300000e-01 2.823500000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">6.053520512e-03</value>
+            <value input="Hy" name="Zxy" output="Ex">6.053520512e-03</value>
+            <value input="Hx" name="Zyx" output="Ey">6.053520512e-03</value>
+            <value input="Hy" name="Zyy" output="Ey">6.053520512e-03</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="1640">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">-3.065700000e-01 -4.923200000e-01</value>
+            <value input="Hy" name="Zxy" output="Ex">8.007100000e-01 1.132500000e+00</value>
+            <value input="Hx" name="Zyx" output="Ey">-2.828100000e-01 -4.303500000e-01</value>
+            <value input="Hy" name="Zyy" output="Ey">1.663000000e-01 2.104900000e-01</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">3.571139072e-03</value>
+            <value input="Hy" name="Zxy" output="Ex">3.571139072e-03</value>
+            <value input="Hx" name="Zyx" output="Ey">3.571139072e-03</value>
+            <value input="Hy" name="Zyy" output="Ey">3.571139072e-03</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="2260">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">NaN NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN NaN</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="3120">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">NaN NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN NaN</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="4680">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">NaN NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN NaN</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="7280">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">NaN NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN NaN</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN</value>
+         </Z.VAR>
+      </Period>
+      <Period units="secs" value="11900">
+         <Z size="[2 2]" type="complex" units="[mV/km]/[nT]">
+            <value input="Hx" name="Zxx" output="Ex">NaN NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN NaN</value>
+         </Z>
+         <Z.VAR size="[2 2]" type="real">
+            <value input="Hx" name="Zxx" output="Ex">NaN</value>
+            <value input="Hy" name="Zxy" output="Ex">NaN</value>
+            <value input="Hx" name="Zyx" output="Ey">NaN</value>
+            <value input="Hy" name="Zyy" output="Ey">NaN</value>
+         </Z.VAR>
+      </Period>
+   </Data>
+</EM_TF>
