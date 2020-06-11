@@ -2,10 +2,8 @@ import numpy as np
 import scipy.signal as sps
 
 import matplotlib.pyplot as plt
-import matplotlib.patheffects as pe
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LogNorm
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -130,7 +128,8 @@ def plot_E3_spectra(ax):
     """
     # frequency spectrum
     freqs, dspectrum = sps.welch(
-        Bt(ts), scaling='spectrum', fs=fs, nperseg=2**12,
+        Bt_E3A(ts) + Bt_E3B(ts), 
+        scaling='spectrum', fs=fs, nperseg=2**12,
     )
     aspectrum = Bf(freqs)
 
@@ -158,9 +157,9 @@ def plot_E3_map(ax1, ax2):
     """
     # create grid for map
     pred_lons = np.linspace(lon_bounds[0], lon_bounds[1], 
-                            np.diff(lon_bounds) + 1)
+                            int(np.diff(lon_bounds)) + 1)
     pred_lats = np.linspace(lat_bounds[0], lat_bounds[1], 
-                            np.diff(lat_bounds) + 1)
+                            int(np.diff(lat_bounds)) + 1)
     lon_mesh, lat_mesh = np.meshgrid(pred_lons, pred_lats)
 
     # generate gridded B-field maps
@@ -170,18 +169,6 @@ def plot_E3_map(ax1, ax2):
     # calculate gridded horizontal B-field intensities (H)
     Bh_E3A = np.sqrt(Bx_E3A**2 + By_E3A**2)
     Bh_E3B = np.sqrt(Bx_E3B**2 + By_E3B**2)
-
-    # print()
-    # print(lat_mesh)
-    # print(lon_mesh)
-    # print()
-    # print(Bx_E3A.reshape(lat_mesh.shape))
-    # print(By_E3A.reshape(lat_mesh.shape))
-    # print(Bz_E3A.reshape(lat_mesh.shape))
-    # print()
-    # print(Bx_E3B.reshape(lat_mesh.shape))
-    # print(By_E3B.reshape(lat_mesh.shape))
-    # print(Bz_E3B.reshape(lat_mesh.shape))
     
     norm = LogNorm(0.01, 1.1)
     cax1 = ax1.pcolormesh(lon_mesh, lat_mesh, 
@@ -254,14 +241,6 @@ def Bt_E3B(t):
                     dawson(np.sqrt(bB*t))/np.sqrt(bB))
     Bt = -2*np.sqrt(mu0*sigma/np.pi) * (func) * 1e9
     return Bt
-
-def Bt(t):
-    """
-    Function to compute the total synthetic B time series from Equation 18.
-    NOTE: this is only correct for the epicenter...not sure if it really
-          makes sense to keep this function
-    """
-    return Bt_E3A(t) + Bt_E3B(t)
 
 def Bf(f):
     """Function to compute the synthetic B frequency spectrum."""
@@ -350,7 +329,7 @@ def main():
     
     plot_E3_timeseries(ax1)
     plt.subplots_adjust(left=0.11, right=0.99, top=0.77, bottom=0.33)
-    plt.savefig('../figs/fig#_E3A_E3B_Bfields_timeseries.png', dpi=300)
+    plt.savefig('../figs/figXX_E3A_E3B_Bfields_timeseries.png', dpi=300)
 
     fig2 = plt.figure(figsize=(6.5, 6.5))
     gs2 = fig2.add_gridspec(ncols=1, nrows=2, height_ratios=[1,1])
@@ -360,7 +339,7 @@ def main():
     plot_E3_map(ax3, ax4)
 
     plt.subplots_adjust(left=0.11, right=0.99, top=0.9, bottom=0.05)
-    plt.savefig('../figs/fig#_E3A_E3B_Bfields_basis.png', dpi=300)
+    plt.savefig('../figs/figXX_E3A_E3B_Bfields_basis.png', dpi=300)
     
     plt.show()
 
