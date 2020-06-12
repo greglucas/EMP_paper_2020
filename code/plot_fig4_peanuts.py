@@ -1,9 +1,12 @@
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LogNorm
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import bezpy
+from scipy.interpolate import interp1d
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -14,7 +17,7 @@ projection = ccrs.LambertConformal(central_latitude=30, central_longitude=-96)
 # stuff for the colormap
 cmap = get_cmap('RdYlBu_r')
 # cmap = get_cmap('magma')
-norm = LogNorm(0.1, 100.)
+norm = LogNorm(1., 1000.)
 
 plt.style.use(['seaborn-paper', './tex.mplstyle'])
 
@@ -27,11 +30,18 @@ color_scaling = 'max'
 
 # taken from Greg's workbook
 # https://github.com/greglucas/GeoelectricHazardPaper2019/blob/master/code/GeoelectricHazardPaper.ipynb
-US_lon_bounds = (-125, -66)
-US_lat_bounds = (24, 50)
-lon_bounds = US_lon_bounds
-plot_lon_bounds = (lon_bounds[0] + 5, lon_bounds[1] - 5)
-lat_bounds = US_lat_bounds
+lon_bounds = (-93.5, -87.5)
+plot_lon_bounds = lon_bounds
+lat_bounds = (35., 39.25)
+
+mt_data_folder = '../data/'
+list_of_files = sorted(glob.glob(mt_data_folder + '*.xml'))
+MT_sites = \
+    {site.name: site for site in [bezpy.mt.read_xml(f) for f in list_of_files]}
+list_of_sites = sorted(MT_sites.keys())
+MT_xys = [[site.latitude, site.longitude] for site in MT_sites.values()]
+
+periods = [1., 10., 100.]
 
 
 def add_features_to_ax(ax):
@@ -48,24 +58,79 @@ def add_features_to_ax(ax):
                    facecolor='slategrey', alpha=0.25, zorder=0)
 
 
-def e_polarization(ax, cbar_ax, fig):
+def create_impedance_tensor_array():
+
+    impedance_tensors = np.zeros((len(periods), len(MT_sites.keys()), 2, 2),
+                                 dtype=np.complex128)
+    for j in range(len(list_of_sites)):
+        site = MT_sites[list_of_sites[j]]
+        z = site.Z.reshape((2, 2, -1))
+        zxx_re_interpolator = \
+            interp1d(site.periods[~np.isnan(np.real(z[0, 0, :]))],
+                     np.real(z[0, 0, :])[~np.isnan(np.real(z[0, 0, :]))],
+                     fill_value='extrapolate')
+        zxx_im_interpolator = \
+            interp1d(site.periods[~np.isnan(np.imag(z[0, 0, :]))],
+                     np.imag(z[0, 0, :])[~np.isnan(np.imag(z[0, 0, :]))],
+                     fill_value='extrapolate')
+        zxy_re_interpolator = \
+            interp1d(site.periods[~np.isnan(np.real(z[0, 1, :]))],
+                     np.real(z[0, 1, :])[~np.isnan(np.real(z[0, 1, :]))],
+                     fill_value='extrapolate')
+        zxy_im_interpolator = \
+            interp1d(site.periods[~np.isnan(np.imag(z[0, 1, :]))],
+                     np.imag(z[0, 1, :])[~np.isnan(np.imag(z[0, 1, :]))],
+                     fill_value='extrapolate')
+        zyx_re_interpolator = \
+            interp1d(site.periods[~np.isnan(np.real(z[1, 0, :]))],
+                     np.real(z[1, 0, :])[~np.isnan(np.real(z[1, 0, :]))],
+                     fill_value='extrapolate')
+        zyx_im_interpolator = \
+            interp1d(site.periods[~np.isnan(np.imag(z[1, 0, :]))],
+                     np.imag(z[1, 0, :])[~np.isnan(np.imag(z[1, 0, :]))],
+                     fill_value='extrapolate')
+        zyy_re_interpolator = \
+            interp1d(site.periods[~np.isnan(np.real(z[1, 1, :]))],
+                     np.real(z[1, 1, :])[~np.isnan(np.real(z[1, 1, :]))],
+                     fill_value='extrapolate')
+        zyy_im_interpolator = \
+            interp1d(site.periods[~np.isnan(np.imag(z[1, 1, :]))],
+                     np.imag(z[1, 1, :])[~np.isnan(np.imag(z[1, 1, :]))],
+                     fill_value='extrapolate')
+        for i in range(len(periods)):
+            period = periods[i]
+            impedance_tensors[i, j, 0, 0] = \
+                zxx_re_interpolator(period) + 1.j * zxx_im_interpolator(period)
+            impedance_tensors[i, j, 0, 1] = \
+                zxy_re_interpolator(period) + 1.j * zxy_im_interpolator(period)
+            impedance_tensors[i, j, 1, 0] = \
+                zyx_re_interpolator(period) + 1.j * zyx_im_interpolator(period)
+            impedance_tensors[i, j, 1, 1] = \
+                zyy_re_interpolator(period) + 1.j * zyy_im_interpolator(period)
+
+    return impedance_tensors
+
+
+def e_polarization(coords, impedance_tensors, ax, cbar_ax, fig):
 
     ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
     add_features_to_ax(ax)
 
-    # ax.text(-96., 51., 'Impedance E-Polarization States',
-    #         fontsize=18, color='k', va='center', ha='center', zorder=3,
+    # ax.text(-93.15, 35.15, 'Impedance E-Polarization States',
+    #         fontsize=12, color='k', va='bottom', ha='left', zorder=3,
     #         path_effects=[pe.withStroke(linewidth=2, foreground='w')],
     #         transform=proj_data)
-    ax.text(-76.25, 23., 'E-Polarization',
-            fontsize=18, color='k', va='center', ha='center', zorder=3,
-            transform=proj_data, fontweight='bold')
+    ax.text(-93.4, 35.1, 'Impedance E-Polarization States',
+            fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+            transform=proj_data)
+    # ax.text(-76.25, 23., 'E-Polarization',
+    #         fontsize=18, color='k', va='center', ha='center', zorder=3,
+    #         transform=proj_data, fontweight='bold')
 
-    for period, zorder in zip([10., 100., 1000.], [1, 2, 3]):
+    for period, zorder in zip(periods, [1, 2, 3]):
 
-        npz = np.load('Impedance_{:.0f}s.npz'.format(period))
-        impedance_tensor = npz['impedance_tensor']
-        coords = npz['coordinates']
+        i = periods.index(period)
+        impedance_tensor = impedance_tensors[i, :, :, :]
 
         # E polarization state from Berdichevsky & Dmitriev book
         l1 = (np.absolute(impedance_tensor[:, 0, 0]) ** 2. +
@@ -130,24 +195,26 @@ def e_polarization(ax, cbar_ax, fig):
     cbar.ax.tick_params(labelsize=10)
 
 
-def h_polarization(ax):
+def h_polarization(coords, impedance_tensors, ax):
 
     ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
     add_features_to_ax(ax)
 
-    # ax.text(-96., 51., 'Impedance H-Polarization States',
-    #         fontsize=18, color='k', va='center', ha='center', zorder=3,
+    # ax.text(-93.15, 35.15, 'Impedance B-Polarization States',
+    #         fontsize=12, color='k', va='bottom', ha='left', zorder=3,
     #         path_effects=[pe.withStroke(linewidth=2, foreground='w')],
     #         transform=proj_data)
-    ax.text(-76.25, 23., 'H-Polarization',
-            fontsize=18, color='k', va='center', ha='center', zorder=3,
-            transform=proj_data, fontweight='bold')
+    ax.text(-93.4, 35.1, 'Impedance B-Polarization States',
+            fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+            transform=proj_data)
+    # ax.text(-76.25, 23., 'B-Polarization',
+    #         fontsize=18, color='k', va='center', ha='center', zorder=3,
+    #         transform=proj_data, fontweight='bold')
 
-    for period, zorder in zip([10., 100., 1000.], [1, 2, 3]):
+    for period, zorder in zip([1., 10., 100.], [1, 2, 3]):
 
-        npz = np.load('Impedance_{:.0f}s.npz'.format(period))
-        impedance_tensor = npz['impedance_tensor']
-        coords = npz['coordinates']
+        i = periods.index(period)
+        impedance_tensor = impedance_tensors[i, :, :, :]
 
         # H polarization state from Berdichevsky & Dmitriev book
         k1 = np.absolute(impedance_tensor[:, 0, 1])**2. + \
@@ -190,6 +257,9 @@ def h_polarization(ax):
 
 def main():
 
+    coords = np.array(MT_xys)
+    impedance_tensors = create_impedance_tensor_array()
+
     fig = plt.figure(figsize=(8.5, 11))
     ax1 = fig.add_subplot(211, aspect='equal', projection=projection)
     ax2 = fig.add_subplot(212, aspect='equal', projection=projection)
@@ -202,12 +272,12 @@ def main():
     # ax3.axes.get_xaxis().set_visible(False)
     # ax3.axes.get_yaxis().set_visible(False)
 
-    e_polarization(ax1, ax3, fig)
-    h_polarization(ax2)
+    e_polarization(coords, impedance_tensors, ax1, ax3, fig)
+    h_polarization(coords, impedance_tensors, ax2)
 
     plt.subplots_adjust(left=0.001, right=0.98, top=0.99, bottom=0.022,
                         hspace=0.15, wspace=0.1)
-    plt.savefig('fig4_peanuts.png', dpi=300)
+    plt.savefig('../figs/fig4_peanuts.png', dpi=300)
     plt.close(fig)
 
 
