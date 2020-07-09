@@ -4,6 +4,7 @@ import scipy.signal as sps
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LogNorm
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -155,6 +156,11 @@ def plot_E3_map(ax1, ax2):
     """
     Plot maps of E3A and E3B normalized B-field
     """
+
+    # draw map
+    ax1.set_extent(plot_lon_bounds + lat_bounds, proj_data)
+    add_features_to_ax(ax1)
+
     # create grid for map
     pred_lons = np.linspace(lon_bounds[0], lon_bounds[1], 
                             int(np.diff(lon_bounds)) + 1)
@@ -162,7 +168,7 @@ def plot_E3_map(ax1, ax2):
                             int(np.diff(lat_bounds)) + 1)
     lon_mesh, lat_mesh = np.meshgrid(pred_lons, pred_lats)
 
-    # generate gridded B-field maps
+    # generate gridded B-field
     Bx_E3A, By_E3A, Bz_E3A = Br_E3A(lat_mesh.ravel(), lon_mesh.ravel())
     Bx_E3B, By_E3B, Bz_E3B = Br_E3B(lat_mesh.ravel(), lon_mesh.ravel())
 
@@ -185,15 +191,21 @@ def plot_E3_map(ax1, ax2):
                transform=proj_data,
                pivot='middle',
                color='w')
-    cb1 = plt.colorbar(cax1, ax=ax1, orientation='vertical')
-    cb1.set_label(label='$B_h$ (nT)', fontsize=12)
-    cb1.ax.tick_params(labelsize=12)
-
-    ax1.set_extent(plot_lon_bounds + lat_bounds, proj_data)
-    add_features_to_ax(ax1)
-    ax1.set_title('E3A Basis B-field', fontsize=12)
-
+    # cb1 = plt.colorbar(cax1, ax=ax1, orientation='vertical')
+    # cb1.set_label(label='$B_h$ (nT)', fontsize=12)
+    # cb1.ax.tick_params(labelsize=12)
+    ax1.text(.01, .94, '(a)',
+             fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+             transform=ax1.transAxes)
+    ax1.text(.01, .01, 'E3A Basis',
+             fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+             transform=ax1.transAxes)
+   
     
+    # draw map
+    ax2.set_extent(plot_lon_bounds + lat_bounds, proj_data)
+    add_features_to_ax(ax2)
+
     norm = LogNorm(0.01, 1.1)
     cax2 = ax2.pcolormesh(lon_mesh, lat_mesh, 
                           Bh_E3B.reshape(lat_mesh.shape), 
@@ -209,13 +221,29 @@ def plot_E3_map(ax1, ax2):
                transform=proj_data,
                pivot='middle',
                color='w')
-    cb2 = plt.colorbar(cax2, ax=ax2, orientation='vertical')
-    cb2.set_label(label='$B_h$ (nT)', fontsize=12)
-    cb2.ax.tick_params(labelsize=12)
+    # cb2 = plt.colorbar(cax2, ax=ax2, orientation='vertical')
+    # cb2.set_label(label='$B_h$ (nT)', fontsize=12)
+    # cb2.ax.tick_params(labelsize=12)
+    ax2.text(.01, .94, '(b)',
+             fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+             transform=ax2.transAxes)
+    ax2.text(.01, .01, 'E3B Basis',
+             fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+             transform=ax2.transAxes)
 
-    ax2.set_extent(plot_lon_bounds + lat_bounds, proj_data)
-    add_features_to_ax(ax2)
-    ax2.set_title('E3B Basis B-field', fontsize=12)
+    # force colorbar between panels (adapted/stolen from Ben Murphy)
+    fig = plt.gcf()
+    cbar_ax = inset_axes(ax1, width='50%', height='1%', loc='lower center',
+                         bbox_to_anchor=(0., 0.5175, 1., 1.),
+                         bbox_transform=fig.transFigure, borderpad=0)
+    # cax = ax1.scatter([], [], s=1., c=[], cmap=cmap, norm=norm,
+    #                  marker='o')
+    cbar = fig.colorbar(cax2, cax=cbar_ax, orientation='horizontal',
+                        use_gridspec=True, fraction=1., aspect=35.)
+    cbar.set_label('$B_h$ [nT]', fontsize=12,
+                   labelpad=4, rotation=0.)
+    cbar.ax.tick_params(labelsize=10)
+
 
 
 
@@ -330,16 +358,21 @@ def main():
     plot_E3_timeseries(ax1)
     plt.subplots_adjust(left=0.11, right=0.99, top=0.77, bottom=0.33)
     plt.savefig('../figs/figXX_E3A_E3B_Bfields_timeseries.png', dpi=300)
+    # plt.savefig('../figs/figXX_E3A_E3B_Bfields_timeseries.pdf')
 
-    fig2 = plt.figure(figsize=(6.5, 6.5))
+    fig2 = plt.figure(figsize=(6.5, 9))
     gs2 = fig2.add_gridspec(ncols=1, nrows=2, height_ratios=[1,1])
     ax3 = fig2.add_subplot(gs2[0], projection=projection)
     ax4 = fig2.add_subplot(gs2[1], projection=projection)
 
     plot_E3_map(ax3, ax4)
 
-    plt.subplots_adjust(left=0.11, right=0.99, top=0.9, bottom=0.05)
+    # plt.subplots_adjust(left=0.11, right=0.99, top=0.9, bottom=0.05)
+    plt.subplots_adjust(left=0.02, right=0.98, top=0.99, bottom=0.01)
+
+
     plt.savefig('../figs/figXX_E3A_E3B_Bfields_basis.png', dpi=300)
+    # plt.savefig('../figs/figXX_E3A_E3B_Bfields_basis.pdf')
     
     plt.show()
 
