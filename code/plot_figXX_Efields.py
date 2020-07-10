@@ -214,9 +214,13 @@ def animate_fields(E_sites, ts, fs):
     ax_time.plot(ts, B_E3B)
     ax_time.plot(ts, B_E3A + B_E3B)
     time_line = ax_time.axvline(0, c='k')
-    ax_time.set_xlim(ts[0], ts[-1])
+    # zero line
+    ax_time.axhline(0, c='gray', zorder=-5)
+    ax_time.set_xlim(1e-1, 1e3)
+    ax_time.set_xscale('log')
+    ax_time.set_ylim(-2500, 2500)
     ax_time.xaxis.tick_top()
-    ax_time.tick_params(direction='in', pad=0)
+    ax_time.tick_params(which='both', direction='in', pad=0)
 
     # create grid for map
     enhance = 20
@@ -301,7 +305,7 @@ def animate_fields(E_sites, ts, fs):
                        transform=proj_data,
                        color='w',
                        units='inches',
-                       scale=10000)
+                       scale=50000)
 
     ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
     add_features_to_ax(ax)
@@ -310,7 +314,7 @@ def animate_fields(E_sites, ts, fs):
     title = fig.suptitle('Time: 0 s')
 
     def animate(t):
-        t *= 10
+        # t *= 10
         time_line.set_xdata(ts[t])
         pcol.set_array(Bh[t, :])
         quiv_B.set_UVC(Bqy[t, :], Bqx[t, :])
@@ -318,7 +322,7 @@ def animate_fields(E_sites, ts, fs):
         title.set_text(f'Time: {ts[t]:.2f} s')
 
     anim = animation.FuncAnimation(fig, animate,
-                                   frames=[x for x in range(250)],
+                                   frames=[x for x in range(25)],
                                    interval=10)
     anim.save('../figs/test_animation.mp4')
 
