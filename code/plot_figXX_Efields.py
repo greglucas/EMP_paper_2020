@@ -136,8 +136,28 @@ def calc_B(lats, lons, ts):
 
 
 def calc_E_sites(sites, B_sites, fs):
+    """Calculate E at all site locations requested.
+
+    B_sites should have the second dimension being the number of sites.
+    """
     E_sites = np.zeros(B_sites.shape)
     for i, site in enumerate(sites.values()):
+        Ex, Ey = site.convolve_fft(B_sites[:, i, 0], B_sites[:, i, 1], dt=1/fs)
+        E_sites[:, i, 0] = Ex
+        E_sites[:, i, 1] = Ey
+
+    return E_sites
+
+
+def calc_E_halfspace(B_sites, fs):
+    """Calculate E based on half-space impedance."""
+    # Depth, then resistivity (Ohm-m)
+    cond = 5e-4
+    site = bezpy.mt.Site1d('halfspace', [1000], [1/cond, 1/cond])
+
+    E_sites = np.zeros(B_sites.shape)
+    # iterate over the second dimensions of B (site locations)
+    for i in range(B_sites.shape[1]):
         Ex, Ey = site.convolve_fft(B_sites[:, i, 0], B_sites[:, i, 1], dt=1/fs)
         E_sites[:, i, 0] = Ex
         E_sites[:, i, 1] = Ey
@@ -314,7 +334,7 @@ def animate_fields(E_sites, ts, fs):
     title = fig.suptitle('Time: 0 s')
 
     def animate(t):
-        # t *= 10
+        t *= 10
         time_line.set_xdata(ts[t])
         pcol.set_array(Bh[t, :])
         quiv_B.set_UVC(Bqy[t, :], Bqx[t, :])
@@ -368,7 +388,9 @@ def main():
     # Add together for total B field
     B_sites = B_sites_E3A + B_sites_E3B
     E_sites = calc_E_sites(MT_sites, B_sites, fs)
-
+    # XXX Using half-space now.
+    E_sites = calc_E_halfspace(B_sites, fs)
+    # return
     animate_fields(E_sites, ts, fs)
     return
 
