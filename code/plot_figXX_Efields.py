@@ -214,31 +214,32 @@ def animate_fields(E_sites, ts, fs):
     from matplotlib import animation
     # Set up the figure and axes
     fig = plt.figure(figsize=(10, 5))
-    height_ratios = [4, 10, 1]
-    gs = fig.add_gridspec(ncols=3, nrows=3, height_ratios=height_ratios,
+    height_ratios = [6, 10, 1]
+    gs = fig.add_gridspec(ncols=6, nrows=3, height_ratios=height_ratios,
                           hspace=0.5)
-    ax_time = fig.add_subplot(gs[0, :])
-    ax_bfield = fig.add_subplot(gs[1, 0], projection=projection)
-    ax_bfield_cbar = fig.add_subplot(gs[2, 0])
-    ax_efield = fig.add_subplot(gs[1, 1], projection=projection)
-    ax_efield_cbar = fig.add_subplot(gs[2, 1])
-    ax_voltage = fig.add_subplot(gs[1, 2], projection=projection)
-    ax_voltage_cbar = fig.add_subplot(gs[2, 2])
+    ax_time = fig.add_subplot(gs[0, 1:5])
+    ax_bfield = fig.add_subplot(gs[1, 0:2], projection=projection)
+    ax_bfield_cbar = fig.add_subplot(gs[2, 0:2])
+    ax_efield = fig.add_subplot(gs[1, 2:4], projection=projection)
+    ax_efield_cbar = fig.add_subplot(gs[2, 2:4])
+    ax_voltage = fig.add_subplot(gs[1, 4:6], projection=projection)
+    ax_voltage_cbar = fig.add_subplot(gs[2, 4:6])
 
     # Time series
     # -----------
     ax = ax_time
     B_E3A = Bt_E3A(ts)
     B_E3B = Bt_E3B(ts)
-    ax_time.plot(ts, B_E3A)
-    ax_time.plot(ts, B_E3B)
-    ax_time.plot(ts, B_E3A + B_E3B)
+    ax_time.plot(ts, B_E3A, c='r')
+    ax_time.plot(ts, B_E3B, c='b')
+    ax_time.plot(ts, B_E3A + B_E3B, c='k')
     time_line = ax_time.axvline(0, c='k')
     # zero line
     ax_time.axhline(0, c='gray', zorder=-5)
-    ax_time.set_xlim(1e-1, 1e3)
+    ax_time.set_xlim(1, 1e3)
     ax_time.set_xscale('log')
-    ax_time.set_ylim(-2500, 2500)
+    ax_time.set_ylim(-1600, 2100)
+    ax_time.set_yticks([-1500, -1000, -500, 0, 500, 1000, 1500, 2000])
     ax_time.xaxis.tick_top()
     ax_time.tick_params(which='both', direction='in', pad=0)
 
@@ -332,6 +333,8 @@ def animate_fields(E_sites, ts, fs):
     ax.set_title('E3 E-field', fontsize=12)
 
     title = fig.suptitle('Time: 0 s')
+    plt.show()
+    return
 
     def animate(t):
         t *= 10
@@ -342,7 +345,7 @@ def animate_fields(E_sites, ts, fs):
         title.set_text(f'Time: {ts[t]:.2f} s')
 
     anim = animation.FuncAnimation(fig, animate,
-                                   frames=[x for x in range(25)],
+                                   frames=[x for x in range(50)],
                                    interval=10)
     anim.save('../figs/test_animation.mp4')
 
