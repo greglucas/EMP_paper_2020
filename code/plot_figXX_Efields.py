@@ -411,6 +411,43 @@ def animate_fields(E_sites, ts, fs):
     anim.save('../figs/test_animation.mp4')
 
 
+def calc_specific_site(name, ts, fs):
+    if name not in MT_sites:
+        raise ValueError(f"{name} is not in the site dictionary.")
+    site = MT_sites[name]
+
+    lats = np.array([site.latitude, 0])
+    lons = np.array([site.longitude, 0])
+
+
+    # Pass in the lat/lon of the requested site
+    B_E3A, B_E3B = calc_B(lats, lons, ts)
+    # Add together for total B field
+    B = B_E3A + B_E3B
+    E = calc_E_sites({name: MT_sites[name]}, B, fs)[:, 0, :2]
+    E_half = calc_E_halfspace(B, fs)[:, 0, :2]
+    B = B[:, 0, :2]
+
+    np.savetxt(f"../data/{name}_time.csv", ts + 1, delimiter=',', header="time")
+    np.savetxt(f"../data/{name}_B.csv", B, delimiter=',', header="Bx,By")
+    np.savetxt(f"../data/{name}_E.csv", E, delimiter=',', header="Ex,Ey")
+    np.savetxt(f"../data/{name}_E_half.csv", E_half, delimiter=',', header="Ex,Ey")
+
+    fig, ax = plt.subplots()
+    ax.plot(ts + 1, E[:, 0], 'b', label='$E_x$')
+    ax.plot(ts + 1, E[:, 1], 'r', label='$E_y$')
+    ax.plot(ts + 1, E_half[:, 0], 'b--', label='$Ehalf_x$')
+    ax.plot(ts + 1, E_half[:, 1], 'r--', label='$Ehalf_y$')
+    ax.set_ylabel('E (V/km)')
+    ax.set_xlabel('Time (s)')
+    ax.set_xscale('log')
+    ax.set_title(f"Site {name}")
+    ax.set_xlim(1, 1e3)
+    ax.legend()
+    plt.show()
+    fig.savefig(f"../figs/{name}_E.png", bbox_inches='tight')
+
+
 def _mesh_grid(x, y):
     """A helper function to extrapolate/center the meshgrid coordiantes.
 
@@ -446,7 +483,14 @@ def main():
     fs = 10  # sampling frequency
     ntimes = 1500000
     ntimes = 15000
+
+    fs = 100  # sampling frequency
+    ntimes = 150000
     ts = np.arange(ntimes) / fs  # time steps
+
+    calc_specific_site("SFM06", ts, fs)
+    calc_specific_site("RF111", ts, fs)
+    return
 
     B_sites_E3A, B_sites_E3B = calc_B(MT_xys[:, 0], MT_xys[:, 1], ts)
     # Add together for total B field
