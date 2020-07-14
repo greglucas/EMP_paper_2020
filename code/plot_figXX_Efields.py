@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LogNorm
+from matplotlib.ticker import FixedLocator
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import bezpy
 
@@ -13,6 +14,7 @@ from plot_figXX_Bfields import Br_E3A, Br_E3B, Bt_E3A, Bt_E3B, lat_epi, lon_epi
 
 proj_data = ccrs.PlateCarree()
 projection = ccrs.LambertConformal(central_latitude=30, central_longitude=-96)
+projection = ccrs.PlateCarree()
 
 # stuff for the colormap
 cmap = get_cmap('RdYlBu_r')
@@ -146,13 +148,16 @@ def calc_E_sites(sites, B_sites, fs):
         E_sites[:, i, 0] = Ex
         E_sites[:, i, 1] = Ey
 
-    return E_sites
+    # Force E to 0 at t=0
+    E_sites[0, :, :] = 0
+    # Change to V/km
+    return E_sites/1000.
 
 
 def calc_E_halfspace(B_sites, fs):
     """Calculate E based on half-space impedance."""
     # Depth, then resistivity (Ohm-m)
-    cond = 5e-4
+    cond = 1e-4
     site = bezpy.mt.Site1d('halfspace', [1000], [1/cond, 1/cond])
 
     E_sites = np.zeros(B_sites.shape)
@@ -162,7 +167,10 @@ def calc_E_halfspace(B_sites, fs):
         E_sites[:, i, 0] = Ex
         E_sites[:, i, 1] = Ey
 
-    return E_sites
+    # Force E to 0 at t=0
+    E_sites[0, :, :] = 0
+    # Change to V/km
+    return E_sites/1000.
 
 
 def plot_E3_Efield_map_sites(ax1, ax2, B_sites, E_sites):
@@ -213,38 +221,55 @@ def plot_E3_Efield_map_sites(ax1, ax2, B_sites, E_sites):
 def animate_fields(E_sites, ts, fs):
     from matplotlib import animation
     # Set up the figure and axes
-    fig = plt.figure(figsize=(10, 5))
-    height_ratios = [6, 10, 1]
-    gs = fig.add_gridspec(ncols=6, nrows=3, height_ratios=height_ratios,
+    fig = plt.figure(figsize=(11, 6))
+    height_ratios = [10, 1, 10]
+    gs = fig.add_gridspec(ncols=3, nrows=3, height_ratios=height_ratios,
                           hspace=0.5)
-    ax_time = fig.add_subplot(gs[0, 1:5])
-    ax_bfield = fig.add_subplot(gs[1, 0:2], projection=projection)
-    ax_bfield_cbar = fig.add_subplot(gs[2, 0:2])
-    ax_efield = fig.add_subplot(gs[1, 2:4], projection=projection)
-    ax_efield_cbar = fig.add_subplot(gs[2, 2:4])
-    ax_voltage = fig.add_subplot(gs[1, 4:6], projection=projection)
-    ax_voltage_cbar = fig.add_subplot(gs[2, 4:6])
+    # B-field first column
+    ax_time = fig.add_subplot(gs[0, 0])
+    ax_bfield_cbar = fig.add_subplot(gs[1, 0])
+    ax_bfield = fig.add_subplot(gs[2, 0], projection=projection)
+
+    # E-field second column
+    ax_efield = fig.add_subplot(gs[0, 1], projection=projection)
+    ax_efield_cbar = fig.add_subplot(gs[1, 1])
+    ax_efield2 = fig.add_subplot(gs[2, 1], projection=projection)
+
+    # Voltage third column
+    ax_voltage = fig.add_subplot(gs[0, 2], projection=projection)
+    ax_voltage_cbar = fig.add_subplot(gs[1, 2])
+    ax_voltage2 = fig.add_subplot(gs[2, 2], projection=projection)
+
+    for ax in [ax_bfield, ax_efield, ax_efield2, ax_voltage, ax_voltage2]:
+        add_features_to_ax(ax)
+        ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
 
     # Time series
     # -----------
     ax = ax_time
     B_E3A = Bt_E3A(ts)
     B_E3B = Bt_E3B(ts)
-    ax_time.plot(ts, B_E3A, c='r')
-    ax_time.plot(ts, B_E3B, c='b')
-    ax_time.plot(ts, B_E3A + B_E3B, c='k')
+    ax_time.plot(ts + 1, B_E3A, c='r')
+    ax_time.plot(ts + 1, B_E3B, c='b')
+    ax_time.plot(ts + 1, B_E3A + B_E3B, c='k')
     time_line = ax_time.axvline(0, c='k')
     # zero line
     ax_time.axhline(0, c='gray', zorder=-5)
     ax_time.set_xlim(1, 1e3)
     ax_time.set_xscale('log')
+    # ax_time.set_xticks()
+    ax_time.xaxis.set_major_locator(FixedLocator([1, 10, 100, 1000]))
+    minors = np.arange(10)
+    minors = ([x for x in minors] +
+              [x*10 for x in minors] +
+              [x*100 for x in minors])
+    ax_time.xaxis.set_minor_locator(FixedLocator(minors))
     ax_time.set_ylim(-1600, 2100)
     ax_time.set_yticks([-1500, -1000, -500, 0, 500, 1000, 1500, 2000])
-    ax_time.xaxis.tick_top()
-    ax_time.tick_params(which='both', direction='in', pad=0)
+    ax_time.set_ylabel("$B_h$ (nT)")
 
     # create grid for map
-    enhance = 20
+    enhance = 3
     nlon = int(np.diff(lon_bounds)) + 1
     nlat = int(np.diff(lat_bounds)) + 1
     grid_lons = np.linspace(lon_bounds[0]-2, lon_bounds[1]+2,
@@ -262,16 +287,15 @@ def animate_fields(E_sites, ts, fs):
     By = B[:, :, 1]
     Bh = np.sqrt(Bx**2 + By**2)
 
-    norm = LogNorm(1, 2500)
+    normB = LogNorm(1, 2500)
     ax = ax_bfield
     ax_cbar = ax_bfield_cbar
-    pcol = ax.pcolormesh(lon_edges, lat_edges,
-                         Bh[0, :].reshape(lat_mesh.shape),
-                         transform=proj_data,
-                         norm=norm,
-                         alpha=.5,
-                         linewidth=0)
-    pcol.set_edgecolor('face')
+    pcol = ax_bfield.pcolormesh(lon_edges, lat_edges,
+                                Bh[0, :].reshape(lat_mesh.shape),
+                                transform=proj_data,
+                                norm=normB,
+                                alpha=.5,
+                                linewidth=0)
     cb = plt.colorbar(pcol, cax=ax_cbar, orientation='horizontal')
     cb.set_label(label='$B_h$ (nT)', fontsize=12)
     cb.ax.tick_params(labelsize=12)
@@ -292,15 +316,52 @@ def animate_fields(E_sites, ts, fs):
                        transform=proj_data,
                        color='w',
                        units='inches',
-                       scale=2500)
+                       scale=5000)
 
     # Red x marks the spot
     ax.scatter(lon_epi, lat_epi, color='r', marker='x',
                s=50, transform=proj_data)
 
-    ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
-    add_features_to_ax(ax)
-    ax.set_title('E3 B-field', fontsize=12)
+    # E-field
+    # -------
+
+    # E-field half-space
+    Egrid = calc_E_halfspace(B, fs)
+    Ex = Egrid[:, :, 0]
+    Ey = Egrid[:, :, 1]
+    Ehgrid = np.sqrt(Ex**2 + Ey**2)
+
+    normE = LogNorm(0.1, 50)
+    ax = ax_efield
+    ax_cbar = ax_efield_cbar
+    pcolE = ax.pcolormesh(lon_edges, lat_edges,
+                          Ehgrid[0, :].reshape(lat_mesh.shape),
+                          transform=proj_data,
+                          norm=normE,
+                          alpha=.5,
+                          linewidth=0)
+
+    cb = plt.colorbar(pcolE, cax=ax_cbar, orientation='horizontal')
+    cb.set_label(label='$E_h$ (V/km)', fontsize=12)
+    cb.ax.tick_params(labelsize=12)
+
+    # Quiver E-field
+    Eq = calc_E_halfspace(Bq, fs)
+    Eqx = Eq[:, :, 0]
+    Eqy = Eq[:, :, 1]
+
+    quiv_Egrid = ax.quiver(lonq.ravel(), latq.ravel(),
+                           Eqy[0, :], Eqx[0, :],
+                           transform=proj_data,
+                           color='w',
+                           units='inches',
+                           scale=100)
+
+    # Red x marks the spot
+    ax.scatter(lon_epi, lat_epi, color='r', marker='x',
+               s=50, transform=proj_data)
+    qk = ax.quiverkey(quiv_Egrid, 0.45, -0.15, 10, r'$10 \frac{V}{km}$',
+                      color='k', labelpos='E', fontproperties={'size': 12})
 
     # E-field
     # -------
@@ -315,32 +376,32 @@ def animate_fields(E_sites, ts, fs):
     Ey[0, :] = 0
     Eh = np.sqrt(Ex**2 + Ey**2)
 
-    ax = ax_efield
-    ax_cbar = ax_efield_cbar
+    ax = ax_efield2
     # Red x marks the spot
     ax.scatter(lon_epi, lat_epi, color='r', marker='x',
                s=50, transform=proj_data)
-    # Arrows for the data
+    # Arrows for the actual site data
     quiv_E = ax.quiver(pred_lons, pred_lats,
                        Ey[0, :], Ex[0, :],
                        transform=proj_data,
                        color='w',
                        units='inches',
-                       scale=50000)
-
-    ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
-    add_features_to_ax(ax)
-    ax.set_title('E3 E-field', fontsize=12)
+                       scale=100)
+    qk = ax.quiverkey(quiv_E, 0.45, 1.15, 10, r'$10 \frac{V}{km}$',
+                      color='k', labelpos='E', fontproperties={'size': 12})
 
     title = fig.suptitle('Time: 0 s')
-    plt.show()
-    return
 
     def animate(t):
         t *= 10
-        time_line.set_xdata(ts[t])
+        time_line.set_xdata(ts[t] + 1)
+        # B-fields
         pcol.set_array(Bh[t, :])
         quiv_B.set_UVC(Bqy[t, :], Bqx[t, :])
+        # Half-space E-fields
+        pcolE.set_array(Ehgrid[t, :])
+        quiv_Egrid.set_UVC(Eqy[t, :], Eqx[t, :])
+        # Site E-fields
         quiv_E.set_UVC(Ey[t, :], Ex[t, :])
         title.set_text(f'Time: {ts[t]:.2f} s')
 
@@ -391,8 +452,6 @@ def main():
     # Add together for total B field
     B_sites = B_sites_E3A + B_sites_E3B
     E_sites = calc_E_sites(MT_sites, B_sites, fs)
-    # XXX Using half-space now.
-    E_sites = calc_E_halfspace(B_sites, fs)
     # return
     animate_fields(E_sites, ts, fs)
     return
