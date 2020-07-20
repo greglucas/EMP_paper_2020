@@ -157,7 +157,7 @@ def calc_E_sites(sites, B_sites, fs):
 def calc_E_halfspace(B_sites, fs):
     """Calculate E based on half-space impedance."""
     # Depth, then resistivity (Ohm-m)
-    cond = 1e-4
+    cond = 1e-3
     site = bezpy.mt.Site1d('halfspace', [1000], [1/cond, 1/cond])
 
     E_sites = np.zeros(B_sites.shape)
