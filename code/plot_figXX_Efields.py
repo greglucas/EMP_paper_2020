@@ -1,11 +1,15 @@
 import glob
+import time
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LogNorm
 from matplotlib.ticker import FixedLocator
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import bezpy
+import geopandas as gpd
+import shapely
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -44,12 +48,63 @@ lon_bounds = (-93.5, -87.5)
 plot_lon_bounds = lon_bounds
 lat_bounds = (35., 39.25)
 
+# MT Impedances
 mt_data_folder = '../data/'
 list_of_files = sorted(glob.glob(mt_data_folder + '*.xml'))
 MT_sites = \
     {site.name: site for site in [bezpy.mt.read_xml(f) for f in list_of_files]}
 list_of_sites = sorted(MT_sites.keys())
 MT_xys = np.array([[site.latitude, site.longitude] for site in MT_sites.values()])
+
+
+def get_intersections(df, lon_bounds, lat_bounds):
+    spatial_index = df.sindex
+
+    x0, x1 = lon_bounds
+    y0, y1 = lat_bounds
+    polygon = shapely.geometry.Polygon([[x0, y0], [x1, y0], [x1, y1], [x0, y1]])
+
+    possible_matches_index = list(spatial_index.intersection(polygon.bounds))
+    possible_matches = df.iloc[possible_matches_index]
+    precise_matches = possible_matches[possible_matches.intersects(polygon)]
+    return precise_matches
+
+
+# Transmission Lines
+transmission_lines_file = '../data/Electric_Power_Transmission_Lines/Electric_Power_Transmission_Lines.shp'
+
+df_tl = gpd.read_file(transmission_lines_file)
+# Change all MultiLineString into LineString objects by grabbing the first line
+# Will miss a few coordinates, but should be OK as an approximation
+df_tl.loc[df_tl["geometry"].apply(lambda x: x.geometryType()) == "MultiLineString","geometry"] = \
+    df_tl.loc[df_tl["geometry"].apply(lambda x: x.geometryType()) == "MultiLineString","geometry"].apply(lambda x: x[0])
+
+# Get rid of erroneous 1MV and low power line voltages
+# df = df[(df["VOLTAGE"] >= 100)]
+
+# Limit it to where EarthScope data is found
+df_tl = get_intersections(df_tl, lon_bounds, lat_bounds)
+
+# Print out the size of the dataframe so far
+print("Number of transmission lines within lat/lon: {0}".format(len(df_tl)))
+
+df_tl["obj"] = df_tl.apply(bezpy.tl.TransmissionLine, axis=1)
+df_tl["length"] = df_tl.obj.apply(lambda x: x.length)
+
+# Apply interpolation weights
+t1 = time.time()
+df_tl.obj.apply(lambda x: x.set_delaunay_weights(MT_xys))
+print("Done filling interpolation weights: {0} s".format(time.time()-t1))
+
+# Remove bad integration paths
+E_test = np.ones((1, len(MT_xys), 2))
+
+arr_delaunay = np.zeros(shape=(1, len(df_tl)))
+for i, tLine in enumerate(df_tl.obj):
+    arr_delaunay[:, i] = tLine.calc_voltages(E_test, how='delaunay')
+
+df_tl = df_tl[~np.isnan(arr_delaunay[0, :])]
+print("Number of transmission lines within MT site boundary: {0}".format(len(df_tl)))
 
 
 def add_features_to_ax(ax):
@@ -173,6 +228,22 @@ def calc_E_halfspace(B_sites, fs):
     return E_sites/1000.
 
 
+def calc_V_lines(df_tl, E_sites):
+    """Calculate V over all transmission lines."""
+    ntimes = len(E_sites)
+    n_trans_lines = len(df_tl)
+
+    arr_delaunay = np.zeros(shape=(ntimes, n_trans_lines))
+    # Iterate over all transmission lines
+    t0 = time.time()
+    for i, tLine in enumerate(df_tl.obj):
+        if i % 100 == 0:
+            print(i, "transmission lines done: ", time.time()-t0, "s")
+        arr_delaunay[:, i] = tLine.calc_voltages(E_sites[..., :2], how='delaunay')
+
+    return arr_delaunay
+
+
 def plot_E3_Efield_map_sites(ax1, ax2, B_sites, E_sites):
     """
     Plot maps of E3A and E3B normalized E-field at sites
@@ -218,13 +289,13 @@ def plot_E3_Efield_map_sites(ax1, ax2, B_sites, E_sites):
     ax2.set_title('E3 E-field', fontsize=12)
 
 
-def animate_fields(E_sites, ts, fs):
+def animate_fields(E_sites, E_half_sites, ts, fs):
     from matplotlib import animation
     # Set up the figure and axes
-    fig = plt.figure(figsize=(11, 6))
+    fig = plt.figure(figsize=(11, 6), constrained_layout=True)
     height_ratios = [10, 1, 10]
     gs = fig.add_gridspec(ncols=3, nrows=3, height_ratios=height_ratios,
-                          hspace=0.5)
+                          hspace=0.4, wspace=0.05)
     # B-field first column
     ax_time = fig.add_subplot(gs[0, 0])
     ax_bfield_cbar = fig.add_subplot(gs[1, 0])
@@ -324,6 +395,7 @@ def animate_fields(E_sites, ts, fs):
 
     # E-field
     # -------
+    scaleE = 75
 
     # E-field half-space
     Egrid = calc_E_halfspace(B, fs)
@@ -355,12 +427,12 @@ def animate_fields(E_sites, ts, fs):
                            transform=proj_data,
                            color='w',
                            units='inches',
-                           scale=100)
+                           scale=scaleE)
 
     # Red x marks the spot
     ax.scatter(lon_epi, lat_epi, color='r', marker='x',
                s=50, transform=proj_data)
-    qk = ax.quiverkey(quiv_Egrid, 0.45, -0.15, 10, r'$10 \frac{V}{km}$',
+    qk = ax.quiverkey(quiv_Egrid, 0.45, -0.1, 10, r'$10 \frac{V}{km}$',
                       color='k', labelpos='E', fontproperties={'size': 12})
 
     # E-field
@@ -386,11 +458,54 @@ def animate_fields(E_sites, ts, fs):
                        transform=proj_data,
                        color='w',
                        units='inches',
-                       scale=100)
-    qk = ax.quiverkey(quiv_E, 0.45, 1.15, 10, r'$10 \frac{V}{km}$',
-                      color='k', labelpos='E', fontproperties={'size': 12})
+                       scale=scaleE)
+
+    # Voltages
+    # --------
+    # We need to multiply by 1000 to undo our previous E division, turning from mV to V.
+    voltages = np.abs(calc_V_lines(df_tl, E_sites))*1000
+    voltages_half = np.abs(calc_V_lines(df_tl, E_half_sites))*1000
+    print("Min/max voltages:", np.min(voltages), np.max(voltages))
+    print("Min/max half-space voltages:", np.min(voltages_half), np.max(voltages_half))
+
+    coll = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
+    coll_half = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
+    coll.set_array(voltages[0, :])
+    coll_half.set_array(voltages_half[0, :])
+    vmin, vmax = 10, 2000
+    cmapV = plt.get_cmap('magma')
+    normV = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
+
+    coll.set_cmap(cmapV)
+    coll.set_norm(normV)
+    coll.set_transform(proj_data) 
+    coll.set_linewidths(1)
+
+    coll_half.set_cmap(cmapV)
+    coll_half.set_norm(normV)
+    coll_half.set_transform(proj_data)   
+    coll_half.set_linewidths(1)
+
+    # The top panel is the half-space
+    ax_voltage.add_collection(coll_half)
+    ax_voltage2.add_collection(coll)
+
+
+    sm = mpl.cm.ScalarMappable(cmap=cmapV, norm=normV)
+    # Set scalar mappable array
+    sm._A = []
+    cbar = mpl.colorbar.Colorbar(ax=ax_voltage_cbar, mappable=sm, orientation='horizontal')
+    # cbar.ax.xaxis.set_ticks_position('bottom')
+    # cbar.ax.tick_params(labelsize=12)
+    cbar.set_label(r'Voltage (V)', size=12)
+    # cbar.ax.xaxis.set_label_position('top')
+    cbar.set_ticks([10, 100, 1000])
+    # cbar.set_ticklabels(['10', '100', '1000'])
 
     title = fig.suptitle('Time: 0 s')
+
+    # Need to save first to get tight layout to work.
+    fig.savefig('../figs/test.png')
 
     def animate(t):
         t *= 10
@@ -403,10 +518,13 @@ def animate_fields(E_sites, ts, fs):
         quiv_Egrid.set_UVC(Eqy[t, :], Eqx[t, :])
         # Site E-fields
         quiv_E.set_UVC(Ey[t, :], Ex[t, :])
+        # Voltages
+        coll.set_array(voltages[t, :])
+        coll_half.set_array(voltages_half[t, :])
         title.set_text(f'Time: {ts[t]:.2f} s')
 
     anim = animation.FuncAnimation(fig, animate,
-                                   frames=[x for x in range(50)],
+                                   frames=[x for x in range(100)],
                                    interval=10)
     anim.save('../figs/test_animation.mp4')
 
@@ -484,20 +602,21 @@ def main():
     ntimes = 1500000
     ntimes = 15000
 
-    fs = 100  # sampling frequency
-    ntimes = 150000
+    # fs = 100  # sampling frequency
     ts = np.arange(ntimes) / fs  # time steps
 
-    calc_specific_site("SFM06", ts, fs)
-    calc_specific_site("RF111", ts, fs)
-    return
+    # TODO: Remove to save data at specific sites
+    # calc_specific_site("SFM06", ts, fs)
+    # calc_specific_site("RF111", ts, fs)
+
 
     B_sites_E3A, B_sites_E3B = calc_B(MT_xys[:, 0], MT_xys[:, 1], ts)
     # Add together for total B field
     B_sites = B_sites_E3A + B_sites_E3B
     E_sites = calc_E_sites(MT_sites, B_sites, fs)
+    E_half_sites = calc_E_halfspace(B_sites, fs)
     # return
-    animate_fields(E_sites, ts, fs)
+    animate_fields(E_sites, E_half_sites, ts, fs)
     return
 
     fig1 = plt.figure(figsize=(6.5, 6.5))
