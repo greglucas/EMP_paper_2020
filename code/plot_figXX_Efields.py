@@ -544,12 +544,12 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     fig.savefig('../figs/fig11.png')
     animate(int(19*fs))
     fig.savefig('../figs/fig12.png')
-    return
+    animate(0)
 
     anim = animation.FuncAnimation(fig, animate,
-                                   frames=[x for x in range(100)],
+                                   frames=[x for x in range(1000)],
                                    interval=10)
-    anim.save('../figs/test_animation.mp4')
+    anim.save('../figs/animation.mp4')
 
 
 def calc_specific_site(name, ts, fs):
