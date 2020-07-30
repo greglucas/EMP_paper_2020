@@ -315,6 +315,17 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
         add_features_to_ax(ax)
         ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
 
+    for ax, label in zip([ax_time, ax_bfield, ax_efield,
+                          ax_efield2, ax_voltage, ax_voltage2],
+                         ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)']):
+        if label == '(a)':
+            color = 'k'
+        else:
+            color = 'w'
+        ax.text(.02, .96, label,
+                fontsize=12, color=color, va='top', ha='left', zorder=3,
+                transform=ax.transAxes)
+
     # Time series
     # -----------
     ax = ax_time
@@ -507,18 +518,6 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # Need to save first to get tight layout to work.
     fig.savefig('../figs/test.png')
 
-    # Make 3 snapshots
-    # t = 0.5
-    # t = 2
-    # t = 19
-    animate(int(0.5*fs))
-    fig.savefig('../figs/fig10.png')
-    animate(int(2*fs))
-    fig.savefig('../figs/fig11.png')
-    animate(int(19*fs))
-    fig.savefig('../figs/fig12.png')
-    return
-
     def animate(t):
         # t *= 10
         time_line.set_xdata(ts[t] + 1)
@@ -533,7 +532,19 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
         # Voltages
         coll.set_array(voltages[t, :])
         coll_half.set_array(voltages_half[t, :])
-        title.set_text(f'Time: {ts[t]:.2f} s')
+        title.set_text(f'Time: {(ts[t]+1):.2f} s')
+
+    # Make 3 snapshots
+    # t = 0.5
+    # t = 2
+    # t = 19
+    animate(int(0.5*fs))
+    fig.savefig('../figs/fig10.png')
+    animate(int(2*fs))
+    fig.savefig('../figs/fig11.png')
+    animate(int(19*fs))
+    fig.savefig('../figs/fig12.png')
+    return
 
     anim = animation.FuncAnimation(fig, animate,
                                    frames=[x for x in range(100)],
