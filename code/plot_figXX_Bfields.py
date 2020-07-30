@@ -27,11 +27,12 @@ projection = ccrs.LambertConformal(central_latitude=30, central_longitude=-96)
 
 # taken from Greg's workbook
 # https://github.com/greglucas/GeoelectricHazardPaper2019/blob/master/code/GeoelectricHazardPaper.ipynb
-US_lon_bounds = (-125, -66)
-US_lat_bounds = (24, 50)
+US_lon_bounds = (-130, -60)
+US_lat_bounds = (20, 55)
 lon_bounds = US_lon_bounds
-plot_lon_bounds = (lon_bounds[0] + 5, lon_bounds[1] - 5)
+plot_lon_bounds = (lon_bounds[0] + 10, lon_bounds[1] - 10)
 lat_bounds = US_lat_bounds
+plot_lat_bounds = (lat_bounds[0] + 5, lat_bounds[1] - 5)
 
 # angles for ellipse plotting
 a = np.linspace(0., 2. * np.pi, num=100)
@@ -158,14 +159,14 @@ def plot_E3_map(ax1, ax2):
     """
 
     # draw map
-    ax1.set_extent(plot_lon_bounds + lat_bounds, proj_data)
+    ax1.set_extent(plot_lon_bounds + plot_lat_bounds, proj_data)
     add_features_to_ax(ax1)
 
     # create grid for map
     pred_lons = np.linspace(lon_bounds[0], lon_bounds[1], 
-                            int(np.diff(lon_bounds)) + 1)
+                            int(np.diff(lon_bounds) / 1.5) + 1)
     pred_lats = np.linspace(lat_bounds[0], lat_bounds[1], 
-                            int(np.diff(lat_bounds)) + 1)
+                            int(np.diff(lat_bounds) / 1.5) + 1)
     lon_mesh, lat_mesh = np.meshgrid(pred_lons, pred_lats)
 
     # generate gridded B-field
@@ -189,21 +190,31 @@ def plot_E3_map(ax1, ax2):
                By_E3A.reshape(lat_mesh.shape),
                Bx_E3A.reshape(lat_mesh.shape),
                transform=proj_data,
+               scale=40,
                pivot='middle',
                color='w')
     # cb1 = plt.colorbar(cax1, ax=ax1, orientation='vertical')
     # cb1.set_label(label='$B_h$ (nT)', fontsize=12)
     # cb1.ax.tick_params(labelsize=12)
-    ax1.text(.01, .94, '(a)',
-             fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+    t1 = ax1.text(.02, .88, '(a) E3A basis $\mathbf{b}^A(x,y)$',
+             fontsize=12, color='k', va='bottom', ha='left', zorder=3,
              transform=ax1.transAxes)
-    ax1.text(.01, .01, 'E3A Basis',
-             fontsize=12, color='w', va='bottom', ha='left', zorder=3,
-             transform=ax1.transAxes)
-   
+    t1.set_bbox(dict(facecolor='w', edgecolor='none',
+                alpha=0.75, boxstyle='round'))
+    # draw a box of the zoomed-in area
+    # (box limits taken from EMP paper)
+    from shapely.geometry.polygon import LinearRing
+    lons = [-88, -88, -93, -93]
+    lats = [35, 38.5, 38.5, 35]
+    ring = LinearRing(list(zip(lons, lats)))
+    ax1.add_geometries([ring], ccrs.PlateCarree(), 
+                       linewidth=1, edgecolor='red', facecolor='none')
+
+
     
     # draw map
-    ax2.set_extent(plot_lon_bounds + lat_bounds, proj_data)
+    ax2.set_extent(plot_lon_bounds + plot_lat_bounds, proj_data)
+    ax2.set_extent
     add_features_to_ax(ax2)
 
     norm = LogNorm(0.01, 1.1)
@@ -219,22 +230,31 @@ def plot_E3_map(ax1, ax2):
                By_E3B.reshape(lat_mesh.shape),
                Bx_E3B.reshape(lat_mesh.shape),
                transform=proj_data,
+               scale=40,
                pivot='middle',
                color='w')
     # cb2 = plt.colorbar(cax2, ax=ax2, orientation='vertical')
     # cb2.set_label(label='$B_h$ (nT)', fontsize=12)
     # cb2.ax.tick_params(labelsize=12)
-    ax2.text(.01, .94, '(b)',
-             fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+    t2 = ax2.text(.02, .88, '(b) E3B basis $\mathbf{b}^B(x,y)$',
+             fontsize=12, color='k', va='bottom', ha='left', zorder=3,
              transform=ax2.transAxes)
-    ax2.text(.01, .01, 'E3B Basis',
-             fontsize=12, color='w', va='bottom', ha='left', zorder=3,
-             transform=ax2.transAxes)
+    t2.set_bbox(dict(facecolor='w', edgecolor='none',
+                alpha=0.75, boxstyle='round'))
+    
+    # draw a box of the zoomed-in area
+    # (box limits taken from EMP paper)
+    from shapely.geometry.polygon import LinearRing
+    lons = [-88, -88, -93, -93]
+    lats = [35, 38.5, 38.5, 35]
+    ring = LinearRing(list(zip(lons, lats)))
+    ax2.add_geometries([ring], ccrs.PlateCarree(), 
+                       linewidth=1, edgecolor='red', facecolor='none')
 
     # force colorbar between panels (adapted/stolen from Ben Murphy)
     fig = plt.gcf()
-    cbar_ax = inset_axes(ax1, width='50%', height='1%', loc='lower center',
-                         bbox_to_anchor=(0., 0.5175, 1., 1.),
+    cbar_ax = inset_axes(ax1, width='90%', height='4%', loc='lower center',
+                         bbox_to_anchor=(0., 0.5, 1., 1.),
                          bbox_transform=fig.transFigure, borderpad=0)
     # cax = ax1.scatter([], [], s=1., c=[], cmap=cmap, norm=norm,
     #                  marker='o')
@@ -242,7 +262,7 @@ def plot_E3_map(ax1, ax2):
                         use_gridspec=True, fraction=1., aspect=35.)
     cbar.set_label('$B_h$ [nT]', fontsize=12,
                    labelpad=4, rotation=0.)
-    cbar.ax.tick_params(labelsize=10)
+    cbar.ax.tick_params(labelsize=12)
 
 
 
@@ -358,9 +378,9 @@ def main():
     plot_E3_timeseries(ax1)
     plt.subplots_adjust(left=0.11, right=0.99, top=0.77, bottom=0.33)
     plt.savefig('../figs/figXX_E3A_E3B_Bfields_timeseries.png', dpi=300)
-    # plt.savefig('../figs/figXX_E3A_E3B_Bfields_timeseries.pdf')
+    plt.savefig('../figs/figXX_E3A_E3B_Bfields_timeseries.pdf')
 
-    fig2 = plt.figure(figsize=(6.5, 9))
+    fig2 = plt.figure(figsize=(4, 6))
     gs2 = fig2.add_gridspec(ncols=1, nrows=2, height_ratios=[1,1])
     ax3 = fig2.add_subplot(gs2[0], projection=projection)
     ax4 = fig2.add_subplot(gs2[1], projection=projection)
@@ -368,11 +388,11 @@ def main():
     plot_E3_map(ax3, ax4)
 
     # plt.subplots_adjust(left=0.11, right=0.99, top=0.9, bottom=0.05)
-    plt.subplots_adjust(left=0.02, right=0.98, top=0.99, bottom=0.01)
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.99, bottom=0.01, hspace=.52)
 
 
     plt.savefig('../figs/figXX_E3A_E3B_Bfields_basis.png', dpi=300)
-    # plt.savefig('../figs/figXX_E3A_E3B_Bfields_basis.pdf')
+    plt.savefig('../figs/figXX_E3A_E3B_Bfields_basis.pdf')
     
     plt.show()
 
