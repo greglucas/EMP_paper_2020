@@ -497,7 +497,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     cbar = mpl.colorbar.Colorbar(ax=ax_voltage_cbar, mappable=sm, orientation='horizontal')
     # cbar.ax.xaxis.set_ticks_position('bottom')
     # cbar.ax.tick_params(labelsize=12)
-    cbar.set_label(r'Voltage (V)', size=12)
+    cbar.set_label('Voltage (V)', size=12)
     # cbar.ax.xaxis.set_label_position('top')
     cbar.set_ticks([10, 100, 1000])
     # cbar.set_ticklabels(['10', '100', '1000'])
@@ -507,8 +507,20 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # Need to save first to get tight layout to work.
     fig.savefig('../figs/test.png')
 
+    # Make 3 snapshots
+    # t = 0.5
+    # t = 2
+    # t = 19
+    animate(int(0.5*fs))
+    fig.savefig('../figs/fig10.png')
+    animate(int(2*fs))
+    fig.savefig('../figs/fig11.png')
+    animate(int(19*fs))
+    fig.savefig('../figs/fig12.png')
+    return
+
     def animate(t):
-        t *= 10
+        # t *= 10
         time_line.set_xdata(ts[t] + 1)
         # B-fields
         pcol.set_array(Bh[t, :])
