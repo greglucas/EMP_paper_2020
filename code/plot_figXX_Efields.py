@@ -406,7 +406,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
 
     # E-field
     # -------
-    scaleE = 75
+    scaleE = 40
 
     # E-field half-space
     Egrid = calc_E_halfspace(B, fs)
@@ -466,23 +466,43 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # Arrows for the actual site data
     quiv_E = ax.quiver(pred_lons, pred_lats,
                        Ey[0, :], Ex[0, :],
+                       Eh[0, :], norm=normE,
                        transform=proj_data,
-                       color='w',
                        units='inches',
                        scale=scaleE)
 
     # Voltages
     # --------
     # We need to multiply by 1000 to undo our previous E division, turning from mV to V.
-    voltages = np.abs(calc_V_lines(df_tl, E_sites))*1000
-    voltages_half = np.abs(calc_V_lines(df_tl, E_half_sites))*1000
+    voltages_orig = calc_V_lines(df_tl, E_sites)*1000
+    voltages_half_orig = calc_V_lines(df_tl, E_half_sites)*1000
+    voltages = np.abs(voltages_orig)
+    voltages_half = np.abs(voltages_half_orig)
     print("Min/max voltages:", np.min(voltages), np.max(voltages))
     print("Min/max half-space voltages:", np.min(voltages_half), np.max(voltages_half))
+    line_loc = np.argmax(np.max(voltages, axis=0))
+    print("Line number with max voltage:", line_loc)
+    newfig = plt.figure()
+    newax = newfig.add_subplot()
+    newax.plot(ts + 1, voltages_orig[:, line_loc], c='r')
+    newax.plot(ts + 1, voltages_half_orig[:, line_loc], c='b')
+    newax.axhline(0, c='gray', zorder=-5)
+    newax.set_xscale('log')
+    newax.set_xlim(1, 1e3)
+    newfig.savefig('../figs/voltage_comparison.png')
+    # Save the V and time data
+    np.savetxt(f"../data/voltage_time.csv", ts + 1, delimiter=',', header="time")
+    np.savetxt(f"../data/voltage_3D.csv", voltages_orig[:, line_loc], delimiter=',', header="Voltage")
+    np.savetxt(f"../data/voltage_halfspace.csv", voltages_half_orig[:, line_loc], delimiter=',', header="Voltage")
+    line_geom = [np.array(linestring)[:, :2] for linestring in df_tl['geometry']][line_loc]
+    np.savetxt(f"../data/voltage_line_coordinates.csv", line_geom, delimiter=',', header="lon,lat")
 
+    # Set the first time to the minimum norm value to make sure they appear
+    # in the very first frame
+    voltages[0, :] = 10
+    voltages_half[0, :] = 10
     coll = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
     coll_half = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
-    coll.set_array(voltages[0, :])
-    coll_half.set_array(voltages_half[0, :])
     vmin, vmax = 10, 2000
     cmapV = plt.get_cmap('magma')
     normV = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
@@ -496,11 +516,12 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     coll_half.set_norm(normV)
     coll_half.set_transform(proj_data)   
     coll_half.set_linewidths(1)
+    coll.set_array(voltages[0, :])
+    coll_half.set_array(voltages_half[0, :])
 
     # The top panel is the half-space
     ax_voltage.add_collection(coll_half)
     ax_voltage2.add_collection(coll)
-
 
     sm = mpl.cm.ScalarMappable(cmap=cmapV, norm=normV)
     # Set scalar mappable array
@@ -528,26 +549,60 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
         pcolE.set_array(Ehgrid[t, :])
         quiv_Egrid.set_UVC(Eqy[t, :], Eqx[t, :])
         # Site E-fields
-        quiv_E.set_UVC(Ey[t, :], Ex[t, :])
+        quiv_E.set_UVC(Ey[t, :], Ex[t, :], Eh[t, :])
         # Voltages
         coll.set_array(voltages[t, :])
         coll_half.set_array(voltages_half[t, :])
         title.set_text(f'Time: {(ts[t]+1):.2f} s')
 
+    fig_vdiff, ax_vdiff = plt.subplots(subplot_kw={'projection': projection})
+    add_features_to_ax(ax_vdiff)
+    ax_vdiff.set_extent(plot_lon_bounds + lat_bounds, proj_data)
+    coll_vdiff = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
+    cmapVdiff = plt.get_cmap('RdBu_r')
+    normVdiff = mpl.colors.Normalize(-1000, 1000)
+    normVdiff = mpl.colors.SymLogNorm(vmin=-1000, vmax=1000, linthresh=10)
+
+    coll_vdiff.set_cmap(cmapVdiff)
+    coll_vdiff.set_norm(normVdiff)
+    coll_vdiff.set_transform(proj_data)
+    coll_vdiff.set_linewidths(1)
+    coll_vdiff.set_array(voltages[0, :] - voltages_half[0, :])
+    ax_vdiff.add_collection(coll_vdiff)
+
+    sm = mpl.cm.ScalarMappable(cmap=cmapVdiff, norm=normVdiff)
+    # Set scalar mappable array
+    sm._A = []
+    cbar = fig_vdiff.colorbar(sm, orientation='horizontal')
+    # cbar.ax.xaxis.set_ticks_position('bottom')
+    # cbar.ax.tick_params(labelsize=12)
+    cbar.set_label('Voltage difference [3D - halfspace] (V)', size=12)
+    # cbar.ax.xaxis.set_label_position('top')
+    # cbar.set_ticks([10, 100, 1000])
+
     # Make 3 snapshots
     # t = 0.5
     # t = 2
     # t = 19
-    animate(int(0.5*fs))
+    t = int(0.5*fs)
+    animate(t)
     fig.savefig('../figs/fig10.png')
-    animate(int(2*fs))
+    coll_vdiff.set_array(voltages[t, :] - voltages_half[t, :])
+    fig_vdiff.savefig('../figs/fig10_vdiff.png')
+    t = int(2*fs)
+    animate(t)
     fig.savefig('../figs/fig11.png')
-    animate(int(19*fs))
+    coll_vdiff.set_array(voltages[t, :] - voltages_half[t, :])
+    fig_vdiff.savefig('../figs/fig11_vdiff.png')
+    t = int(19*fs)
+    animate(t)
     fig.savefig('../figs/fig12.png')
+    coll_vdiff.set_array(voltages[t, :] - voltages_half[t, :])
+    fig_vdiff.savefig('../figs/fig12_vdiff.png')
     animate(0)
 
     anim = animation.FuncAnimation(fig, animate,
-                                   frames=[x for x in range(1000)],
+                                   frames=[x for x in range(100)],
                                    interval=10)
     anim.save('../figs/animation.mp4')
 
