@@ -1,5 +1,7 @@
 import glob
 import time
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -482,6 +484,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     print("Min/max half-space voltages:", np.min(voltages_half), np.max(voltages_half))
     line_loc = np.argmax(np.max(voltages, axis=0))
     print("Line number with max voltage:", line_loc)
+    print("Line length:", df_tl.iloc[line_loc, :]['obj'].length)
     newfig = plt.figure()
     newax = newfig.add_subplot()
     newax.plot(ts + 1, voltages_orig[:, line_loc], c='r')
@@ -490,17 +493,38 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     newax.set_xscale('log')
     newax.set_xlim(1, 1e3)
     newfig.savefig('../figs/voltage_comparison.png')
-    # Save the V and time data
-    np.savetxt(f"../data/voltage_time.csv", ts + 1, delimiter=',', header="time")
-    np.savetxt(f"../data/voltage_3D.csv", voltages_orig[:, line_loc], delimiter=',', header="Voltage")
-    np.savetxt(f"../data/voltage_halfspace.csv", voltages_half_orig[:, line_loc], delimiter=',', header="Voltage")
-    line_geom = [np.array(linestring)[:, :2] for linestring in df_tl['geometry']][line_loc]
-    np.savetxt(f"../data/voltage_line_coordinates.csv", line_geom, delimiter=',', header="lon,lat")
+
+    for line_loc, obj in enumerate(df_tl.iterrows()):
+        row = obj[1]
+        if row['OBJECTID'] in [31200, 58952, 56250, 34886, 42687]:
+            line_id = row['OBJECTID']
+        else:
+            continue
+        line_folder = f'../data/line_{line_id}'
+        if not os.path.exists(line_folder):
+            os.makedirs(line_folder)
+        # Save the V and time data
+        np.savetxt(line_folder + "/voltage_time.csv", ts + 1, delimiter=',', header="time")
+        np.savetxt(line_folder + "/voltage_3D.csv", voltages_orig[:, line_loc], delimiter=',', header="Voltage")
+        np.savetxt(line_folder + "/voltage_halfspace.csv", voltages_half_orig[:, line_loc], delimiter=',', header="Voltage")
+        line_geom = [np.array(linestring)[:, :2] for linestring in df_tl['geometry']][line_loc]
+        np.savetxt(line_folder + "/voltage_line_coordinates.csv", line_geom, delimiter=',', header="lon,lat")
+        with open(line_folder + "/line_info.txt", 'w') as temp_file:
+            print(df_tl.iloc[line_loc], file=temp_file)
+        max_voltage = np.max(np.abs(voltages_orig[:, line_loc]))
+        print("GML line info:", line_loc, line_id, row['length'], max_voltage)
+
+    # 903 highest line, OBJID==42687
+    # Some other options in subset geoms
+    # -4, OBJID==31200
+    # -7, OBJID==58952
+    # -20, OBJID==56250
+    # -21, OBJID==34886
 
     # Set the first time to the minimum norm value to make sure they appear
     # in the very first frame
-    voltages[0, :] = 10
-    voltages_half[0, :] = 10
+    voltages[0, :] = 11
+    voltages_half[0, :] = 11
     coll = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
     coll_half = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
     vmin, vmax = 10, 2000
@@ -602,7 +626,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     animate(0)
 
     anim = animation.FuncAnimation(fig, animate,
-                                   frames=[x for x in range(100)],
+                                   frames=[x for x in range(300)],
                                    interval=10)
     anim.save('../figs/animation.mp4')
 
