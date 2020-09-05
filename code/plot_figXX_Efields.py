@@ -8,7 +8,6 @@ import matplotlib as mpl
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LogNorm
 from matplotlib.ticker import FixedLocator
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import bezpy
 import geopandas as gpd
 import shapely
@@ -56,7 +55,8 @@ list_of_files = sorted(glob.glob(mt_data_folder + '*.xml'))
 MT_sites = \
     {site.name: site for site in [bezpy.mt.read_xml(f) for f in list_of_files]}
 list_of_sites = sorted(MT_sites.keys())
-MT_xys = np.array([[site.latitude, site.longitude] for site in MT_sites.values()])
+MT_xys = np.array([[site.latitude, site.longitude]
+                   for site in MT_sites.values()])
 
 
 def get_intersections(df, lon_bounds, lat_bounds):
@@ -64,7 +64,8 @@ def get_intersections(df, lon_bounds, lat_bounds):
 
     x0, x1 = lon_bounds
     y0, y1 = lat_bounds
-    polygon = shapely.geometry.Polygon([[x0, y0], [x1, y0], [x1, y1], [x0, y1]])
+    polygon = shapely.geometry.Polygon([[x0, y0], [x1, y0],
+                                        [x1, y1], [x0, y1]])
 
     possible_matches_index = list(spatial_index.intersection(polygon.bounds))
     possible_matches = df.iloc[possible_matches_index]
@@ -73,13 +74,16 @@ def get_intersections(df, lon_bounds, lat_bounds):
 
 
 # Transmission Lines
-transmission_lines_file = '../data/Electric_Power_Transmission_Lines/Electric_Power_Transmission_Lines.shp'
+transmission_lines_file = ('../data/Electric_Power_Transmission_Lines/'
+                           'Electric_Power_Transmission_Lines.shp')
 
 df_tl = gpd.read_file(transmission_lines_file)
 # Change all MultiLineString into LineString objects by grabbing the first line
 # Will miss a few coordinates, but should be OK as an approximation
-df_tl.loc[df_tl["geometry"].apply(lambda x: x.geometryType()) == "MultiLineString","geometry"] = \
-    df_tl.loc[df_tl["geometry"].apply(lambda x: x.geometryType()) == "MultiLineString","geometry"].apply(lambda x: x[0])
+df_tl.loc[df_tl["geometry"].apply(
+    lambda x: x.geometryType()) == "MultiLineString", "geometry"] = \
+    df_tl.loc[df_tl["geometry"].apply(lambda x: x.geometryType(
+    )) == "MultiLineString", "geometry"].apply(lambda x: x[0])
 
 # Get rid of erroneous 1MV and low power line voltages
 # df = df[(df["VOLTAGE"] >= 100)]
@@ -106,7 +110,7 @@ for i, tLine in enumerate(df_tl.obj):
     arr_delaunay[:, i] = tLine.calc_voltages(E_test, how='delaunay')
 
 df_tl = df_tl[~np.isnan(arr_delaunay[0, :])]
-print("Number of transmission lines within MT site boundary: {0}".format(len(df_tl)))
+print(f"Number of transmission lines within MT site boundary: {len(df_tl)}")
 
 
 def add_features_to_ax(ax):
@@ -132,12 +136,12 @@ def plot_E3_Bfield_map_sites(ax1, ax2):
     pred_lats = MT_xys[:, 0]
 
     # generate B-field maps at each of the tensor locations
-    Bx_E3A, By_E3A, Bz_E3A = Br_E3A(pred_lats, pred_lons)
-    Bx_E3B, By_E3B, Bz_E3B = Br_E3B(pred_lats, pred_lons)
+    Bx_E3A, By_E3A, _ = Br_E3A(pred_lats, pred_lons)
+    Bx_E3B, By_E3B, _ = Br_E3B(pred_lats, pred_lons)
 
     # calculate horizontal B-field intensities (H)
-    Bh_E3A = np.sqrt(Bx_E3A**2 + By_E3A**2)
-    Bh_E3B = np.sqrt(Bx_E3B**2 + By_E3B**2)
+    # Bh_E3A = np.sqrt(Bx_E3A**2 + By_E3A**2)
+    # Bh_E3B = np.sqrt(Bx_E3B**2 + By_E3B**2)
 
     # Red x marks the spot
     ax1.scatter(lon_epi, lat_epi, color='r', marker='x',
@@ -241,7 +245,8 @@ def calc_V_lines(df_tl, E_sites):
     for i, tLine in enumerate(df_tl.obj):
         if i % 100 == 0:
             print(i, "transmission lines done: ", time.time()-t0, "s")
-        arr_delaunay[:, i] = tLine.calc_voltages(E_sites[..., :2], how='delaunay')
+        arr_delaunay[:, i] = tLine.calc_voltages(E_sites[..., :2],
+                                                 how='delaunay')
 
     return arr_delaunay
 
@@ -445,8 +450,8 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # Red x marks the spot
     ax.scatter(lon_epi, lat_epi, color='r', marker='x',
                s=50, transform=proj_data)
-    qk = ax.quiverkey(quiv_Egrid, 0.45, -0.1, 10, r'$10 \frac{V}{km}$',
-                      color='k', labelpos='E', fontproperties={'size': 12})
+    _ = ax.quiverkey(quiv_Egrid, 0.45, -0.1, 10, r'$10 \frac{V}{km}$',
+                     color='k', labelpos='E', fontproperties={'size': 12})
 
     # E-field
     # -------
@@ -475,13 +480,15 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
 
     # Voltages
     # --------
-    # We need to multiply by 1000 to undo our previous E division, turning from mV to V.
+    # We need to multiply by 1000 to undo our previous E division
+    # changing from mV to V.
     voltages_orig = calc_V_lines(df_tl, E_sites)*1000
     voltages_half_orig = calc_V_lines(df_tl, E_half_sites)*1000
     voltages = np.abs(voltages_orig)
     voltages_half = np.abs(voltages_half_orig)
     print("Min/max voltages:", np.min(voltages), np.max(voltages))
-    print("Min/max half-space voltages:", np.min(voltages_half), np.max(voltages_half))
+    print("Min/max half-space voltages:",
+          np.min(voltages_half), np.max(voltages_half))
     line_loc = np.argmax(np.max(voltages, axis=0))
     print("Line number with max voltage:", line_loc)
     print("Line length:", df_tl.iloc[line_loc, :]['obj'].length)
@@ -504,11 +511,17 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
         if not os.path.exists(line_folder):
             os.makedirs(line_folder)
         # Save the V and time data
-        np.savetxt(line_folder + "/voltage_time.csv", ts + 1, delimiter=',', header="time")
-        np.savetxt(line_folder + "/voltage_3D.csv", voltages_orig[:, line_loc], delimiter=',', header="Voltage")
-        np.savetxt(line_folder + "/voltage_halfspace.csv", voltages_half_orig[:, line_loc], delimiter=',', header="Voltage")
-        line_geom = [np.array(linestring)[:, :2] for linestring in df_tl['geometry']][line_loc]
-        np.savetxt(line_folder + "/voltage_line_coordinates.csv", line_geom, delimiter=',', header="lon,lat")
+        np.savetxt(line_folder + "/voltage_time.csv",
+                   ts + 1, delimiter=',', header="time")
+        np.savetxt(line_folder + "/voltage_3D.csv",
+                   voltages_orig[:, line_loc], delimiter=',', header="Voltage")
+        np.savetxt(line_folder + "/voltage_halfspace.csv",
+                   voltages_half_orig[:, line_loc], delimiter=',',
+                   header="Voltage")
+        line_geom = [np.array(linestring)[:, :2]
+                     for linestring in df_tl['geometry']][line_loc]
+        np.savetxt(line_folder + "/voltage_line_coordinates.csv",
+                   line_geom, delimiter=',', header="lon,lat")
         with open(line_folder + "/line_info.txt", 'w') as temp_file:
             print(df_tl.iloc[line_loc], file=temp_file)
         max_voltage = np.max(np.abs(voltages_orig[:, line_loc]))
@@ -525,8 +538,10 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # in the very first frame
     voltages[0, :] = 11
     voltages_half[0, :] = 11
-    coll = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
-    coll_half = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
+    coll = mpl.collections.LineCollection(
+        [np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
+    coll_half = mpl.collections.LineCollection(
+        [np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
     vmin, vmax = 10, 2000
     cmapV = plt.get_cmap('magma')
     normV = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
@@ -534,12 +549,12 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     coll.set_cmap(cmapV)
     coll.set_norm(normV)
     coll.set_transform(proj_data)
-    coll.set_linewidths(1)
+    # coll.set_linewidth(1)
 
     coll_half.set_cmap(cmapV)
     coll_half.set_norm(normV)
     coll_half.set_transform(proj_data)
-    coll_half.set_linewidths(1)
+    # coll_half.set_linewidth(1)
     coll.set_array(voltages[0, :])
     coll_half.set_array(voltages_half[0, :])
 
@@ -550,7 +565,8 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     sm = mpl.cm.ScalarMappable(cmap=cmapV, norm=normV)
     # Set scalar mappable array
     sm._A = []
-    cbar = mpl.colorbar.Colorbar(ax=ax_voltage_cbar, mappable=sm, orientation='horizontal')
+    cbar = mpl.colorbar.Colorbar(ax=ax_voltage_cbar, mappable=sm,
+                                 orientation='horizontal')
     # cbar.ax.xaxis.set_ticks_position('bottom')
     # cbar.ax.tick_params(labelsize=12)
     cbar.set_label('Voltage (V)', size=12)
@@ -589,7 +605,8 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
 
     add_features_to_ax(ax_vdiff)
     ax_vdiff.set_extent(plot_lon_bounds + lat_bounds, proj_data)
-    coll_vdiff = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
+    coll_vdiff = mpl.collections.LineCollection(
+        [np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
     cmapVdiff = plt.get_cmap('RdBu_r')
     normVdiff = mpl.colors.Normalize(-1000, 1000)
     normVdiff = mpl.colors.SymLogNorm(vmin=-1000, vmax=1000, linthresh=10)
@@ -597,7 +614,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     coll_vdiff.set_cmap(cmapVdiff)
     coll_vdiff.set_norm(normVdiff)
     coll_vdiff.set_transform(proj_data)
-    coll_vdiff.set_linewidths(1)
+    # coll_vdiff.set_linewidth(1)
     coll_vdiff.set_array(voltages[0, :] - voltages_half[0, :])
     ax_vdiff.add_collection(coll_vdiff)
 
@@ -643,7 +660,6 @@ def calc_specific_site(name, ts, fs):
     lats = np.array([site.latitude, 0])
     lons = np.array([site.longitude, 0])
 
-
     # Pass in the lat/lon of the requested site
     B_E3A, B_E3B = calc_B(lats, lons, ts)
     # Add together for total B field
@@ -652,10 +668,14 @@ def calc_specific_site(name, ts, fs):
     E_half = calc_E_halfspace(B, fs)[:, 0, :2]
     B = B[:, 0, :2]
 
-    np.savetxt(f"../data/{name}_time.csv", ts + 1, delimiter=',', header="time")
-    np.savetxt(f"../data/{name}_B.csv", B, delimiter=',', header="Bx,By")
-    np.savetxt(f"../data/{name}_E.csv", E, delimiter=',', header="Ex,Ey")
-    np.savetxt(f"../data/{name}_E_half.csv", E_half, delimiter=',', header="Ex,Ey")
+    np.savetxt(f"../data/{name}_time.csv", ts + 1, delimiter=',',
+               header="time")
+    np.savetxt(f"../data/{name}_B.csv", B, delimiter=',',
+               header="Bx,By")
+    np.savetxt(f"../data/{name}_E.csv", E, delimiter=',',
+               header="Ex,Ey")
+    np.savetxt(f"../data/{name}_E_half.csv", E_half, delimiter=',',
+               header="Ex,Ey")
 
     fig, ax = plt.subplots()
     ax.plot(ts + 1, E[:, 0], 'b', label='$E_x$')
@@ -715,7 +735,6 @@ def main():
     # calc_specific_site("SFM06", ts, fs)
     # calc_specific_site("RF111", ts, fs)
 
-
     B_sites_E3A, B_sites_E3B = calc_B(MT_xys[:, 0], MT_xys[:, 1], ts)
     # Add together for total B field
     B_sites = B_sites_E3A + B_sites_E3B
@@ -748,6 +767,7 @@ def main():
 
     plt.close(fig1)
     plt.close(fig2)
+
 
 if __name__ == "__main__":
     main()
