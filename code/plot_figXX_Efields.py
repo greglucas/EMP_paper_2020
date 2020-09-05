@@ -296,8 +296,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # Set up the figure and axes
     fig = plt.figure(figsize=(11, 6), constrained_layout=True)
     height_ratios = [10, 1, 10]
-    gs = fig.add_gridspec(ncols=3, nrows=3, height_ratios=height_ratios,
-                          hspace=0.4, wspace=0.05)
+    gs = fig.add_gridspec(ncols=3, nrows=3, height_ratios=height_ratios)
     # B-field first column
     ax_time = fig.add_subplot(gs[0, 0])
     ax_bfield_cbar = fig.add_subplot(gs[1, 0])
@@ -351,6 +350,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     ax_time.set_ylim(-1600, 2100)
     ax_time.set_yticks([-1500, -1000, -500, 0, 500, 1000, 1500, 2000])
     ax_time.set_ylabel("$B_h$ (nT)")
+    ax_time.set_xlabel("Time $t$ (s)")
 
     # create grid for map
     enhance = 3
@@ -533,12 +533,12 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
 
     coll.set_cmap(cmapV)
     coll.set_norm(normV)
-    coll.set_transform(proj_data) 
+    coll.set_transform(proj_data)
     coll.set_linewidths(1)
 
     coll_half.set_cmap(cmapV)
     coll_half.set_norm(normV)
-    coll_half.set_transform(proj_data)   
+    coll_half.set_transform(proj_data)
     coll_half.set_linewidths(1)
     coll.set_array(voltages[0, :])
     coll_half.set_array(voltages_half[0, :])
@@ -579,7 +579,14 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
         coll_half.set_array(voltages_half[t, :])
         title.set_text(f'Time: {(ts[t]+1):.2f} s')
 
-    fig_vdiff, ax_vdiff = plt.subplots(subplot_kw={'projection': projection})
+    # Voltage Difference Maps
+    # -----------------------
+    fig_vdiff = plt.figure(figsize=(9, 7), constrained_layout=True)
+    height_ratios = [20, 1]
+    gs = fig_vdiff.add_gridspec(ncols=1, nrows=2, height_ratios=height_ratios)
+    ax_vdiff_cbar = fig_vdiff.add_subplot(gs[1, 0])
+    ax_vdiff = fig_vdiff.add_subplot(gs[0, 0], projection=projection)
+
     add_features_to_ax(ax_vdiff)
     ax_vdiff.set_extent(plot_lon_bounds + lat_bounds, proj_data)
     coll_vdiff = mpl.collections.LineCollection([np.array(linestring)[:, :2] for linestring in df_tl['geometry']])
@@ -597,12 +604,9 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     sm = mpl.cm.ScalarMappable(cmap=cmapVdiff, norm=normVdiff)
     # Set scalar mappable array
     sm._A = []
-    cbar = fig_vdiff.colorbar(sm, orientation='horizontal')
-    # cbar.ax.xaxis.set_ticks_position('bottom')
-    # cbar.ax.tick_params(labelsize=12)
-    cbar.set_label('Voltage difference [3D - halfspace] (V)', size=12)
-    # cbar.ax.xaxis.set_label_position('top')
-    # cbar.set_ticks([10, 100, 1000])
+    cbar = mpl.colorbar.Colorbar(ax=ax_vdiff_cbar, mappable=sm,
+                                 orientation='horizontal')
+    cbar.set_label('V$_{MT}$ - V$_{HS}$ (V)', size=12)
 
     # Make 3 snapshots
     # t = 0.5
