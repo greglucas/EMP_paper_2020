@@ -379,10 +379,11 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     normB = LogNorm(1, 2500)
     ax = ax_bfield
     ax_cbar = ax_bfield_cbar
+    cmapB = plt.get_cmap('viridis')
     pcol = ax_bfield.pcolormesh(lon_edges, lat_edges,
                                 Bh[0, :].reshape(lat_mesh.shape),
                                 transform=proj_data,
-                                norm=normB,
+                                norm=normB, cmap=cmapB,
                                 alpha=.5,
                                 linewidth=0)
     cb = plt.colorbar(pcol, cax=ax_cbar, orientation='horizontal')
@@ -424,14 +425,20 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     normE = LogNorm(0.1, 50)
     ax = ax_efield
     ax_cbar = ax_efield_cbar
-    pcolE = ax.pcolormesh(lon_edges, lat_edges,
-                          Ehgrid[0, :].reshape(lat_mesh.shape),
-                          transform=proj_data,
-                          norm=normE,
-                          alpha=.5,
-                          linewidth=0)
+    # pcolE = ax.pcolormesh(lon_edges, lat_edges,
+    #                       Ehgrid[0, :].reshape(lat_mesh.shape),
+    #                       transform=proj_data,
+    #                       norm=normE,
+    #                       alpha=.5,
+    #                       linewidth=0)
 
-    cb = plt.colorbar(pcolE, cax=ax_cbar, orientation='horizontal')
+    cmapE = plt.get_cmap('plasma')
+    sm = mpl.cm.ScalarMappable(cmap=cmapE, norm=normE)
+    # Set scalar mappable array
+    sm._A = []
+    cb = mpl.colorbar.Colorbar(ax=ax_cbar, mappable=sm,
+                               orientation='horizontal')
+
     cb.set_label(label='$E_h$ (V/km)', fontsize=12)
     cb.ax.tick_params(labelsize=12)
 
@@ -439,11 +446,12 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     Eq = calc_E_halfspace(Bq, fs)
     Eqx = Eq[:, :, 0]
     Eqy = Eq[:, :, 1]
+    Eqh = np.sqrt(Eqx**2 + Eqy**2)
 
     quiv_Egrid = ax.quiver(lonq.ravel(), latq.ravel(),
                            Eqy[0, :], Eqx[0, :],
+                           Eqh[0, :], norm=normE, cmap=cmapE,
                            transform=proj_data,
-                           color='w',
                            units='inches',
                            scale=scaleE)
 
@@ -473,7 +481,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # Arrows for the actual site data
     quiv_E = ax.quiver(pred_lons, pred_lats,
                        Ey[0, :], Ex[0, :],
-                       Eh[0, :], norm=normE,
+                       Eh[0, :], norm=normE, cmap=cmapE,
                        transform=proj_data,
                        units='inches',
                        scale=scaleE)
@@ -574,7 +582,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     cbar.set_ticks([10, 100, 1000])
     # cbar.set_ticklabels(['10', '100', '1000'])
 
-    title = fig.suptitle('Time: 0 s')
+    title = ax_efield.set_title('Time: 0 s')
 
     # Need to save first to get tight layout to work.
     fig.savefig('../figs/test.png')
@@ -586,8 +594,8 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
         pcol.set_array(Bh[t, :])
         quiv_B.set_UVC(Bqy[t, :], Bqx[t, :])
         # Half-space E-fields
-        pcolE.set_array(Ehgrid[t, :])
-        quiv_Egrid.set_UVC(Eqy[t, :], Eqx[t, :])
+        # pcolE.set_array(Ehgrid[t, :])
+        quiv_Egrid.set_UVC(Eqy[t, :], Eqx[t, :], Eqh[t, :])
         # Site E-fields
         quiv_E.set_UVC(Ey[t, :], Ex[t, :], Eh[t, :])
         # Voltages
@@ -597,7 +605,8 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
 
     # Voltage Difference Maps
     # -----------------------
-    fig_vdiff = plt.figure(figsize=(9, 7), constrained_layout=True)
+    aspect = 8/9
+    fig_vdiff = plt.figure(figsize=(4, 4*aspect), constrained_layout=True)
     height_ratios = [20, 1]
     gs = fig_vdiff.add_gridspec(ncols=1, nrows=2, height_ratios=height_ratios)
     ax_vdiff_cbar = fig_vdiff.add_subplot(gs[1, 0])
