@@ -63,22 +63,30 @@ def main():
     ax_1d_ze = fig.add_subplot(gs[0, 0], projection='polar')
     ax_1d_ze.set_theta_zero_location("N")
     ax_1d_ze.set_theta_direction(-1)
-    ax_1d_ze.set_title('E-Polarization', pad=25., fontsize=12)
-    ax_1d_ze.set_ylabel(site_1d, labelpad=32., fontsize=12)
+    ax_1d_ze.set_ylabel('E-Polarization', labelpad=32., fontsize=10)
+    ax_1d_ze.set_title(site_1d, pad=25., fontsize=10)
+    ax_1d_ze.text(-0.1, 1.1, r"$\bf{(a)}$", fontsize=10, color='k', va='top',
+                  ha='left', zorder=3, transform=ax_1d_ze.transAxes)
 
-    ax_1d_zb = fig.add_subplot(gs[0, 1], projection='polar')
+    ax_1d_zb = fig.add_subplot(gs[1, 0], projection='polar')
     ax_1d_zb.set_theta_zero_location("N")
     ax_1d_zb.set_theta_direction(-1)
-    ax_1d_zb.set_title('B-Polarization', pad=25., fontsize=12)
+    ax_1d_zb.set_ylabel('B-Polarization', labelpad=32., fontsize=10)
+    ax_1d_zb.text(-0.1, 1.1, r"$\bf{(c)}$", fontsize=10, color='k', va='top',
+                  ha='left', zorder=3, transform=ax_1d_zb.transAxes)
 
-    ax_3d_ze = fig.add_subplot(gs[1, 0], projection='polar')
+    ax_3d_ze = fig.add_subplot(gs[0, 1], projection='polar')
     ax_3d_ze.set_theta_zero_location("N")
     ax_3d_ze.set_theta_direction(-1)
-    ax_3d_ze.set_ylabel(site_3d, labelpad=32., fontsize=12)
+    ax_3d_ze.set_title(site_3d, pad=25., fontsize=10)
+    ax_3d_ze.text(-0.1, 1.1, r"$\bf{(b)}$", fontsize=10, color='k', va='top',
+                  ha='left', zorder=3, transform=ax_3d_ze.transAxes)
 
     ax_3d_zb = fig.add_subplot(gs[1, 1], projection='polar')
     ax_3d_zb.set_theta_zero_location("N")
     ax_3d_zb.set_theta_direction(-1)
+    ax_3d_zb.text(-0.1, 1.1, r"$\bf{(d)}$", fontsize=10, color='k', va='top',
+                  ha='left', zorder=3, transform=ax_3d_zb.transAxes)
 
     for sitename, filename, ax_ze, ax_zb, legend in zip(
             [site_1d, site_3d], [filename_1d, filename_3d],
@@ -133,6 +141,14 @@ def main():
             # evaluate polarization curves
             z_e = e_polarization(angles, np.array([[zxx, zxy], [zyx, zyy]]))
             z_h = h_polarization(angles, np.array([[zxx, zxy], [zyx, zyy]]))
+
+            if sitename == 'RF111':
+                print(period, np.amax(z_e), np.amin(z_e),
+                      angles[np.argmax(z_e)] * 180. / np.pi,
+                      angles[np.argmin(z_e)] * 180. / np.pi,
+                      np.amax(z_h), np.amin(z_h),
+                      angles[np.argmax(z_h)] * 180. / np.pi,
+                      angles[np.argmin(z_h)] * 180. / np.pi)
 
             if legend:
                 ax_zb.plot(angles, z_h, color, label=label)

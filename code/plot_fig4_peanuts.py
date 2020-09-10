@@ -2,17 +2,25 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
+import matplotlib.ticker as mticker
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LogNorm
+from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import bezpy
 from scipy.interpolate import interp1d
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 
 proj_data = ccrs.PlateCarree()
-projection = ccrs.LambertConformal(central_latitude=30, central_longitude=-96)
+lon_bounds = (-93.5, -87.5)
+lat_bounds = (34.8, 39.5)
+projection = \
+    ccrs.Mercator(central_longitude=(lon_bounds[0] + lon_bounds[1]) / 2.,
+                  latitude_true_scale=(lat_bounds[0] + lat_bounds[1]) / 2.)
+# projection = ccrs.LambertConformal(central_latitude=30, central_longitude=-96)
 
 # stuff for the colormap
 cmap = get_cmap('RdYlBu_r')
@@ -24,15 +32,8 @@ plt.style.use(['seaborn-paper', './tex.mplstyle'])
 # angles for ellipse plotting
 a = np.linspace(0., 2. * np.pi, num=100)
 
-# 'geom', 'area', 'max'
-size_scaling = 'max'
-color_scaling = 'max'
-
-# taken from Greg's workbook
-# https://github.com/greglucas/GeoelectricHazardPaper2019/blob/master/code/GeoelectricHazardPaper.ipynb
-lon_bounds = (-93.5, -87.5)
-plot_lon_bounds = lon_bounds
-lat_bounds = (35., 39.25)
+scale_size = True
+size_scaling = 1.
 
 mt_data_folder = '../data/'
 list_of_files = sorted(glob.glob(mt_data_folder + '*.xml'))
@@ -41,7 +42,8 @@ MT_sites = \
 list_of_sites = sorted(MT_sites.keys())
 MT_xys = [[site.latitude, site.longitude] for site in MT_sites.values()]
 
-periods = [1., 10., 100.]
+# periods = [1., 10., 100.]
+periods = [1.]
 
 
 def add_features_to_ax(ax):
@@ -113,73 +115,60 @@ def create_impedance_tensor_array():
 
 def e_polarization(coords, impedance_tensors, ax, cbar_ax, fig):
 
-    ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
+    ax.set_extent(lon_bounds + lat_bounds, proj_data)
     add_features_to_ax(ax)
 
     # ax.text(-93.15, 35.15, 'Impedance E-Polarization States',
     #         fontsize=12, color='k', va='bottom', ha='left', zorder=3,
     #         path_effects=[pe.withStroke(linewidth=2, foreground='w')],
     #         transform=proj_data)
-    ax.text(-93.4, 35.1, 'Impedance E-Polarization States',
-            fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+    ax.text(-93.35, 35., 'E-Polarization',
+            fontsize=10, color='w', va='bottom', ha='left', zorder=3,
             transform=proj_data)
-    # ax.text(-76.25, 23., 'E-Polarization',
-    #         fontsize=18, color='k', va='center', ha='center', zorder=3,
-    #         transform=proj_data, fontweight='bold')
 
-    for period, zorder in zip(periods, [1, 2, 3]):
+    # E polarization state from Berdichevsky & Dmitriev book
+    l1 = (np.absolute(impedance_tensors[:, :, 0, 0]) ** 2. +
+          np.absolute(impedance_tensors[:, :, 0, 1]) ** 2.) / \
+         np.absolute(impedance_tensors[:, :, 0, 0] *
+                     impedance_tensors[:, :, 1, 1] -
+                     impedance_tensors[:, :, 0, 1] *
+                     impedance_tensors[:, :, 1, 0]) ** 2.
+    l2 = 2. * np.real(impedance_tensors[:, :, 0, 0] *
+                      impedance_tensors[:, :, 1, 0].conj() +
+                      impedance_tensors[:, :, 1, 1] *
+                      impedance_tensors[:, :, 0, 1].conj()) / \
+         np.absolute(impedance_tensors[:, :, 0, 0] *
+                     impedance_tensors[:, :, 1, 1] -
+                     impedance_tensors[:, :, 0, 1] *
+                     impedance_tensors[:, :, 1, 0]) ** 2.
+    l3 = (np.absolute(impedance_tensors[:, :, 1, 1]) ** 2. +
+          np.absolute(impedance_tensors[:, :, 1, 0]) ** 2.) / \
+         np.absolute(impedance_tensors[:, :, 0, 0] *
+                     impedance_tensors[:, :, 1, 1] -
+                     impedance_tensors[:, :, 0, 1] *
+                     impedance_tensors[:, :, 1, 0]) ** 2.
+    # PERIOD ON AXIS 0, SITE ON AXIS 1
 
-        i = periods.index(period)
-        impedance_tensor = impedance_tensors[i, :, :, :]
+    for j in range(coords.shape[0]):
 
-        # E polarization state from Berdichevsky & Dmitriev book
-        l1 = (np.absolute(impedance_tensor[:, 0, 0]) ** 2. +
-              np.absolute(impedance_tensor[:, 0, 1]) ** 2.) / \
-             np.absolute(impedance_tensor[:, 0, 0] *
-                         impedance_tensor[:, 1, 1] -
-                         impedance_tensor[:, 0, 1] *
-                         impedance_tensor[:, 1, 0]) ** 2.
-        l2 = 2. * np.real(impedance_tensor[:, 0, 0] *
-                          impedance_tensor[:, 1, 0].conj() +
-                          impedance_tensor[:, 1, 1] *
-                          impedance_tensor[:, 0, 1].conj()) / \
-             np.absolute(impedance_tensor[:, 0, 0] *
-                         impedance_tensor[:, 1, 1] -
-                         impedance_tensor[:, 0, 1] *
-                         impedance_tensor[:, 1, 0]) ** 2.
-        l3 = (np.absolute(impedance_tensor[:, 1, 1]) ** 2. +
-              np.absolute(impedance_tensor[:, 1, 0]) ** 2.) / \
-             np.absolute(impedance_tensor[:, 0, 0] *
-                         impedance_tensor[:, 1, 1] -
-                         impedance_tensor[:, 0, 1] *
-                         impedance_tensor[:, 1, 0]) ** 2.
+        for period, zorder in zip(periods, [1, 1, 1]):
 
-        for i in range(coords.shape[0]):
-            z_e = np.sqrt(1. / (l1[i] * np.sin(a) ** 2. -
-                                l2[i] * np.sin(a) * np.cos(a) +
-                                l3[i] * np.cos(a) ** 2.))
+            i = periods.index(period)
+
+            z_e = np.sqrt(1. / (l1[i, j] * np.sin(a) ** 2. -
+                                l2[i, j] * np.sin(a) * np.cos(a) +
+                                l3[i, j] * np.cos(a) ** 2.))
             # REMEMBER Y is E/W and X is N/S
             vertices = np.column_stack((z_e * np.sin(a), z_e * np.cos(a)))
 
-            if size_scaling == 'geom':
-                size_scale = np.sqrt(np.amax(z_e) * np.amin(z_e)) * 5.
-            elif size_scaling == 'area':
-                size_scale = np.pi * np.amax(z_e) * np.amin(z_e) / 5.
-            elif size_scaling == 'max':
-                size_scale = np.amax(z_e) * 5.
+            if scale_size:
+                size_scale = np.amax(z_e) * size_scaling
             else:
-                size_scale = 1.
+                size_scale = 200. / (2. * (np.log10(period) + 1))
 
-            if color_scaling == 'geom':
-                color_scale = np.sqrt(np.amax(z_e) * np.amin(z_e))
-            elif color_scaling == 'area':
-                color_scale = np.pi * np.amax(z_e) * np.amin(z_e)
-            elif color_scaling == 'max':
-                color_scale = np.amax(z_e)
-            else:
-                color_scale = 1.
+            color_scale = np.amax(z_e)
 
-            ax.scatter(np.atleast_2d(coords[i, 1]), np.atleast_2d(coords[i, 0]),
+            ax.scatter(np.atleast_2d(coords[j, 1]), np.atleast_2d(coords[j, 0]),
                        s=size_scale, c=np.atleast_2d(cmap(norm(color_scale))),
                        marker=vertices, zorder=zorder, edgecolor='k',
                        linewidth=0.1, transform=proj_data)
@@ -188,68 +177,56 @@ def e_polarization(coords, impedance_tensors, ax, cbar_ax, fig):
                      marker='o')
     cbar = fig.colorbar(cax, cax=cbar_ax, orientation='horizontal',
                         use_gridspec=True, fraction=1., aspect=35.)
-    cbar.set_label('Max Scaling [mv/km]/[nT]', fontsize=12,
-                   labelpad=4, rotation=0.)
+    cbar.set_label('Max Scaling [mv/km]/[nT]', fontsize=8,
+                   labelpad=2, rotation=0.)
     # cbar.set_label('Size: {}, Color: {}'.format(size_scaling, color_scaling),
     #                fontsize=10, labelpad=4, rotation=0.)
-    cbar.ax.tick_params(labelsize=10)
+    cbar.ax.tick_params(labelsize=8)
 
 
 def h_polarization(coords, impedance_tensors, ax):
 
-    ax.set_extent(plot_lon_bounds + lat_bounds, proj_data)
+    ax.set_extent(lon_bounds + lat_bounds, proj_data)
     add_features_to_ax(ax)
 
     # ax.text(-93.15, 35.15, 'Impedance B-Polarization States',
     #         fontsize=12, color='k', va='bottom', ha='left', zorder=3,
     #         path_effects=[pe.withStroke(linewidth=2, foreground='w')],
     #         transform=proj_data)
-    ax.text(-93.4, 35.1, 'Impedance B-Polarization States',
-            fontsize=12, color='w', va='bottom', ha='left', zorder=3,
+    ax.text(-93.35, 35., 'B-Polarization',
+            fontsize=10, color='w', va='bottom', ha='left', zorder=3,
             transform=proj_data)
-    # ax.text(-76.25, 23., 'B-Polarization',
-    #         fontsize=18, color='k', va='center', ha='center', zorder=3,
-    #         transform=proj_data, fontweight='bold')
 
-    for period, zorder in zip([1., 10., 100.], [1, 2, 3]):
+    # H polarization state from Berdichevsky & Dmitriev book
+    k1 = np.absolute(impedance_tensors[:, :, 0, 1]) ** 2. + \
+         np.absolute(impedance_tensors[:, :, 1, 1]) ** 2.
+    k2 = 2. * np.real(
+        impedance_tensors[:, :, 0, 0] * impedance_tensors[:, :, 0, 1].conj() +
+        impedance_tensors[:, :, 1, 0] * impedance_tensors[:, :, 1, 1].conj())
+    k3 = np.absolute(impedance_tensors[:, :, 0, 0]) ** 2. + \
+         np.absolute(impedance_tensors[:, :, 1, 0]) ** 2.
+    # PERIOD ON AXIS 0, SITE ON AXIS 1
 
-        i = periods.index(period)
-        impedance_tensor = impedance_tensors[i, :, :, :]
+    for j in range(coords.shape[0]):
 
-        # H polarization state from Berdichevsky & Dmitriev book
-        k1 = np.absolute(impedance_tensor[:, 0, 1])**2. + \
-             np.absolute(impedance_tensor[:, 1, 1])**2.
-        k2 = 2. * np.real(impedance_tensor[:, 0, 0] * impedance_tensor[:, 0, 1].conj() +
-                          impedance_tensor[:, 1, 0] * impedance_tensor[:, 1, 1].conj())
-        k3 = np.absolute(impedance_tensor[:, 0, 0])**2. + \
-             np.absolute(impedance_tensor[:, 1, 0])**2.
+        for period, zorder in zip(periods, [1, 1, 1]):
 
-        for i in range(coords.shape[0]):
-            z_h = np.sqrt(k1[i] * np.sin(a) ** 2. +
-                          k2[i] * np.sin(a) * np.cos(a) +
-                          k3[i] * np.cos(a) ** 2.)
+            i = periods.index(period)
+
+            z_h = np.sqrt(k1[i, j] * np.sin(a) ** 2. +
+                          k2[i, j] * np.sin(a) * np.cos(a) +
+                          k3[i, j] * np.cos(a) ** 2.)
             # REMEMBER Y is E/W and X is N/S
             vertices = np.column_stack((z_h * np.sin(a), z_h * np.cos(a)))
 
-            if size_scaling == 'geom':
-                size_scale = np.sqrt(np.amax(z_h) * np.amin(z_h)) * 5.
-            elif size_scaling == 'area':
-                size_scale = np.pi * np.amax(z_h) * np.amin(z_h) / 5.
-            elif size_scaling == 'max':
-                size_scale = np.amax(z_h) * 5.
+            if scale_size:
+                size_scale = np.amax(z_h) * size_scaling
             else:
-                size_scale = 1.
+                size_scale = 200. / (2. * (np.log10(period) + 1))
 
-            if color_scaling == 'geom':
-                color_scale = np.sqrt(np.amax(z_h) * np.amin(z_h))
-            elif color_scaling == 'area':
-                color_scale = np.pi * np.amax(z_h) * np.amin(z_h)
-            elif color_scaling == 'max':
-                color_scale = np.amax(z_h)
-            else:
-                color_scale = 1.
+            color_scale = np.amax(z_h)
 
-            ax.scatter(np.atleast_2d(coords[i, 1]), np.atleast_2d(coords[i, 0]),
+            ax.scatter(np.atleast_2d(coords[j, 1]), np.atleast_2d(coords[j, 0]),
                        s=size_scale, c=np.atleast_2d(cmap(norm(color_scale))),
                        marker=vertices, zorder=zorder, edgecolor='k',
                        linewidth=0.1, transform=proj_data)
@@ -260,23 +237,26 @@ def main():
     coords = np.array(MT_xys)
     impedance_tensors = create_impedance_tensor_array()
 
-    fig = plt.figure(figsize=(8.5, 11))
-    ax1 = fig.add_subplot(211, aspect='equal', projection=projection)
-    ax2 = fig.add_subplot(212, aspect='equal', projection=projection)
-    ax3 = inset_axes(ax1, width='50%', height='1%', loc='lower center',
-                     bbox_to_anchor=(0., 0.5175, 1., 1.),
-                     bbox_transform=fig.transFigure, borderpad=0)
-                     # bbox_to_anchor=(0., 0.515, 1., 1.),
-                     # bbox_transform=fig.transFigure, borderpad=0)
-    # ax3 = fig.add_axes([0.5, 0.5, 0.2, 0.1], frameon=False)
-    # ax3.axes.get_xaxis().set_visible(False)
-    # ax3.axes.get_yaxis().set_visible(False)
+    fig = plt.figure(figsize=(10./2.54, 20./2.54))
+    gs = GridSpec(3, 1, height_ratios=[1., 0.1, 1.])
+    ax_a = fig.add_subplot(gs[0, 0], aspect='equal', projection=projection)
+    ax_b = fig.add_subplot(gs[2, 0], aspect='equal', projection=projection)
+    ax_cbar = inset_axes(ax_a, width='50%', height='1%', loc='lower center',
+                         # bbox_to_anchor=(0., 0.3575, 1., 1.),
+                         bbox_to_anchor=(0., 0.5225, 1., 1.),
+                         bbox_transform=fig.transFigure, borderpad=0)
 
-    e_polarization(coords, impedance_tensors, ax1, ax3, fig)
-    h_polarization(coords, impedance_tensors, ax2)
+    # NEED TO COORDINATE LABEL PLACEMENT WITH OTHER MAPS
+    ax_a.text(0.03, 0.97, r"$\bf{(a)}$", fontsize=10, color='w', va='top',
+              ha='left', zorder=3, transform=ax_a.transAxes)
+    ax_b.text(0.03, 0.97, r"$\bf{(b)}$", fontsize=10, color='w', va='top',
+              ha='left', zorder=3, transform=ax_b.transAxes)
+
+    e_polarization(coords, impedance_tensors, ax_a, ax_cbar, fig)
+    h_polarization(coords, impedance_tensors, ax_b)
 
     plt.subplots_adjust(left=0.001, right=0.98, top=0.99, bottom=0.022,
-                        hspace=0.15, wspace=0.1)
+                        hspace=0.05, wspace=0.1)
     plt.savefig('../figs/fig4_peanuts.png', dpi=300)
     plt.close(fig)
 
