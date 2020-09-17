@@ -28,6 +28,12 @@ norm = LogNorm(1., 1000.)
 
 plt.style.use(['seaborn-paper', './tex.mplstyle'])
 
+# Figure options
+mm_per_inch = 25.4
+fig_height = 230 / mm_per_inch
+fig_width = 190 / mm_per_inch
+mpl.rcParams['figure.dpi'] = 300
+
 # 'geom', 'area', 'max'
 size_scaling = 'max'
 color_scaling = 'max'
@@ -299,7 +305,7 @@ def plot_E3_Efield_map_sites(ax1, ax2, B_sites, E_sites):
 def animate_fields(E_sites, E_half_sites, ts, fs):
     from matplotlib import animation
     # Set up the figure and axes
-    fig = plt.figure(figsize=(11, 6), constrained_layout=True)
+    fig = plt.figure(figsize=(fig_width, fig_height/2), constrained_layout=True)
     height_ratios = [10, 1, 10]
     gs = fig.add_gridspec(ncols=3, nrows=3, height_ratios=height_ratios)
     # B-field first column
@@ -533,7 +539,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
         with open(line_folder + "/line_info.txt", 'w') as temp_file:
             print(df_tl.iloc[line_loc], file=temp_file)
         max_voltage = np.max(np.abs(voltages_orig[:, line_loc]))
-        print("GML line info:", line_loc, line_id, row['length'], max_voltage)
+        print("Line info:", line_loc, line_id, row['length'], max_voltage)
 
     # 903 highest line, OBJID==42687
     # Some other options in subset geoms
@@ -606,7 +612,8 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # Voltage Difference Maps
     # -----------------------
     aspect = 8/9
-    fig_vdiff = plt.figure(figsize=(4, 4*aspect), constrained_layout=True)
+    fig_vdiff = plt.figure(figsize=(fig_width/2, fig_width/2*aspect),
+                           constrained_layout=True)
     height_ratios = [20, 1]
     gs = fig_vdiff.add_gridspec(ncols=1, nrows=2, height_ratios=height_ratios)
     ax_vdiff_cbar = fig_vdiff.add_subplot(gs[1, 0])
@@ -641,22 +648,27 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     t = int(0.5*fs)
     animate(t)
     fig.savefig('../figs/fig10.png')
+    fig.savefig('../figs/fig10.pdf')
     coll_vdiff.set_array(voltages[t, :] - voltages_half[t, :])
     fig_vdiff.savefig('../figs/fig10_vdiff.png')
+    fig_vdiff.savefig('../figs/fig10_vdiff.pdf')
     t = int(2*fs)
     animate(t)
     fig.savefig('../figs/fig11.png')
+    fig.savefig('../figs/fig11.pdf')
     coll_vdiff.set_array(voltages[t, :] - voltages_half[t, :])
     fig_vdiff.savefig('../figs/fig11_vdiff.png')
+    fig_vdiff.savefig('../figs/fig11_vdiff.pdf')
     t = int(19*fs)
     animate(t)
     fig.savefig('../figs/fig12.png')
+    fig.savefig('../figs/fig12.pdf')
     coll_vdiff.set_array(voltages[t, :] - voltages_half[t, :])
     fig_vdiff.savefig('../figs/fig12_vdiff.png')
+    fig_vdiff.savefig('../figs/fig12_vdiff.pdf')
     animate(0)
-
     anim = animation.FuncAnimation(fig, animate,
-                                   frames=[x for x in range(300)],
+                                   frames=[x for x in range(600)],
                                    interval=10)
     anim.save('../figs/animation.mp4')
 
@@ -753,7 +765,7 @@ def main():
     animate_fields(E_sites, E_half_sites, ts, fs)
     return
 
-    fig1 = plt.figure(figsize=(6.5, 6.5))
+    fig1 = plt.figure(figsize=(fig_width, fig_height/2))
     gs1 = fig1.add_gridspec(ncols=1, nrows=2, height_ratios=[1, 1])
     ax1 = fig1.add_subplot(gs1[0], projection=projection)
     ax2 = fig1.add_subplot(gs1[1], projection=projection)
@@ -763,7 +775,7 @@ def main():
     plt.subplots_adjust(left=0.11, right=0.99, top=0.9, bottom=0.05)
     plt.savefig('../figs/figXX_Bfields_sites.png')
 
-    fig2 = plt.figure(figsize=(6.5, 6.5))
+    fig2 = plt.figure(figsize=(fig_width, fig_height/2))
     gs2 = fig2.add_gridspec(ncols=1, nrows=2, height_ratios=[1, 1])
     ax3 = fig2.add_subplot(gs2[0], projection=projection)
     ax4 = fig2.add_subplot(gs2[1], projection=projection)
