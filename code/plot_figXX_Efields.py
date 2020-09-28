@@ -51,9 +51,9 @@ def symlog(x, y):
 
 # taken from Greg's workbook
 # https://github.com/greglucas/GeoelectricHazardPaper2019/blob/master/code/GeoelectricHazardPaper.ipynb
-lon_bounds = (-93.5, -87.5)
+lon_bounds = (-93, -88)
 plot_lon_bounds = lon_bounds
-lat_bounds = (35., 39.25)
+lat_bounds = (35., 38.5)
 
 # MT Impedances
 mt_data_folder = '../data/'
@@ -305,7 +305,8 @@ def plot_E3_Efield_map_sites(ax1, ax2, B_sites, E_sites):
 def animate_fields(E_sites, E_half_sites, ts, fs):
     from matplotlib import animation
     # Set up the figure and axes
-    fig = plt.figure(figsize=(fig_width, fig_height/2), constrained_layout=True)
+    fig = plt.figure(figsize=(fig_width, fig_height/2),
+                     constrained_layout=True)
     height_ratios = [10, 1, 10]
     gs = fig.add_gridspec(ncols=3, nrows=3, height_ratios=height_ratios)
     # B-field first column
@@ -335,7 +336,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
         else:
             color = 'w'
         ax.text(.02, .96, label,
-                fontsize=12, color=color, va='top', ha='left', zorder=3,
+                color=color, va='top', ha='left', zorder=3,
                 transform=ax.transAxes)
 
     # Time series
@@ -344,17 +345,22 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     B_E3A = Bt_E3A(ts)
     B_E3B = Bt_E3B(ts)
     ax_time.plot(ts + 1, B_E3A, c='r')
+    ax.text(120, 1700, '$B^A(t)$', color='r')
     ax_time.plot(ts + 1, B_E3B, c='b')
+    ax.text(65, -750, '$B^B(t)$', color='b')
     ax_time.plot(ts + 1, B_E3A + B_E3B, c='k')
+    ax.text(10, 600, '$B(t)$', color='k')
     time_line = ax_time.axvline(0, c='k')
     # zero line
     ax_time.axhline(0, c='gray', zorder=-5)
-    ax_time.set_xlim(1, 1e3)
+    ax_time.set_xlim(1e-1, 1e3)
+    ax_time.axvline(1, c='gray')
     ax_time.set_xscale('log')
     # ax_time.set_xticks()
-    ax_time.xaxis.set_major_locator(FixedLocator([1, 10, 100, 1000]))
+    ax_time.xaxis.set_major_locator(FixedLocator([0.1, 1, 10, 100, 1000]))
     minors = np.arange(10)
-    minors = ([x for x in minors] +
+    minors = ([x*0.1 for x in minors] +
+              [x for x in minors] +
               [x*10 for x in minors] +
               [x*100 for x in minors])
     ax_time.xaxis.set_minor_locator(FixedLocator(minors))
@@ -667,8 +673,10 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     fig_vdiff.savefig('../figs/fig12_vdiff.png')
     fig_vdiff.savefig('../figs/fig12_vdiff.pdf')
     animate(0)
+    # Time starts at t=1 seconds,
+    # we also need to add one final timestep to range
     anim = animation.FuncAnimation(fig, animate,
-                                   frames=[x for x in range(600)],
+                                   frames=[x for x in range(601)],
                                    interval=10)
     anim.save('../figs/animation.mp4')
 
