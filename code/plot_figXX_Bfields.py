@@ -67,7 +67,7 @@ ts = np.arange(1500000) / fs # time steps
 
 
 # for double SECS
-lat_epi = 36.75 # epicenter latitude (degrees north)
+lat_epi = 37.25 # epicenter latitude (degrees north)
 lon_epi = -90.5 # epicenter longitude (degrees east)
 rad_earth = 6378e3 # earth radius (meters)
 rad_iono = rad_earth + 110e3 # ionosphere radius (meters)
@@ -81,7 +81,7 @@ delta = 800e3 # N-S separation distance of SECs (meters)
 # add map features
 def add_features_to_ax(ax):
     land_alpha = 0.7
-    scale = '10m'
+    scale = '50m'
     # 10m oceans are super slow...
     ax.add_feature(cfeature.OCEAN.with_scale('50m'),
                    facecolor='slategrey', alpha=0.65, zorder=-1)
@@ -205,7 +205,7 @@ def plot_E3_map(ax1, ax2):
     # (box limits taken from EMP paper)
     from shapely.geometry.polygon import LinearRing
     lons = [-88, -88, -93, -93]
-    lats = [35, 38.5, 38.5, 35]
+    lats = [35, 39.5, 39.5, 35]
     ring = LinearRing(list(zip(lons, lats)))
     ax1.add_geometries([ring], ccrs.PlateCarree(), 
                        linewidth=1, edgecolor='red', facecolor='none')
@@ -246,7 +246,7 @@ def plot_E3_map(ax1, ax2):
     # (box limits taken from EMP paper)
     from shapely.geometry.polygon import LinearRing
     lons = [-88, -88, -93, -93]
-    lats = [35, 38.5, 38.5, 35]
+    lats = [35, 39.5, 39.5, 35]
     ring = LinearRing(list(zip(lons, lats)))
     ax2.add_geometries([ring], ccrs.PlateCarree(), 
                        linewidth=1, edgecolor='red', facecolor='none')
