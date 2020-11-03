@@ -214,7 +214,6 @@ def plot_E3_map(ax1, ax2):
     
     # draw map
     ax2.set_extent(plot_lon_bounds + plot_lat_bounds, proj_data)
-    ax2.set_extent
     add_features_to_ax(ax2)
 
     norm = LogNorm(0.01, 1.1)
@@ -377,8 +376,8 @@ def main():
     
     plot_E3_timeseries(ax1)
     plt.subplots_adjust(left=0.11, right=0.99, top=0.77, bottom=0.33)
-    plt.savefig('../figs/figXX_E3A_E3B_Bfields_timeseries.png', dpi=300)
-    plt.savefig('../figs/figXX_E3A_E3B_Bfields_timeseries.pdf')
+    plt.savefig('../figs/fig_E3A_E3B_Bfields_timeseries.png', dpi=300)
+    plt.savefig('../figs/fig_E3A_E3B_Bfields_timeseries.pdf')
 
     fig2 = plt.figure(figsize=(4, 6))
     gs2 = fig2.add_gridspec(ncols=1, nrows=2, height_ratios=[1,1])
@@ -391,8 +390,8 @@ def main():
     plt.subplots_adjust(left=0.05, right=0.95, top=0.99, bottom=0.01, hspace=.52)
 
 
-    plt.savefig('../figs/figXX_E3A_E3B_Bfields_basis.png', dpi=300)
-    plt.savefig('../figs/figXX_E3A_E3B_Bfields_basis.pdf')
+    plt.savefig('../figs/fig_E3A_E3B_Bfields_basis.png', dpi=300)
+    plt.savefig('../figs/fig_E3A_E3B_Bfields_basis.pdf')
     
     plt.show()
 
