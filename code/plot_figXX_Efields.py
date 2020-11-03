@@ -49,11 +49,9 @@ def symlog(x, y):
     return newx, newy
 
 
-# taken from Greg's workbook
-# https://github.com/greglucas/GeoelectricHazardPaper2019/blob/master/code/GeoelectricHazardPaper.ipynb
 lon_bounds = (-93, -88)
 plot_lon_bounds = lon_bounds
-lat_bounds = (35., 38.5)
+lat_bounds = (35, 39.5)
 
 # MT Impedances
 mt_data_folder = '../data/'
@@ -305,7 +303,8 @@ def plot_E3_Efield_map_sites(ax1, ax2, B_sites, E_sites):
 def animate_fields(E_sites, E_half_sites, ts, fs):
     from matplotlib import animation
     # Set up the figure and axes
-    fig = plt.figure(figsize=(fig_width, fig_height/2),
+    aspect = 9/8
+    fig = plt.figure(figsize=(fig_width, fig_height/2*aspect),
                      constrained_layout=True)
     height_ratios = [10, 1, 10]
     gs = fig.add_gridspec(ncols=3, nrows=3, height_ratios=height_ratios)
@@ -470,7 +469,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # Red x marks the spot
     ax.scatter(lon_epi, lat_epi, color='r', marker='x',
                s=50, transform=proj_data)
-    _ = ax.quiverkey(quiv_Egrid, 0.45, -0.1, 10, r'$10 \frac{V}{km}$',
+    _ = ax.quiverkey(quiv_Egrid, 0.45, -0.1, 10, r'10 V/km',
                      color='k', labelpos='E', fontproperties={'size': 12})
 
     # E-field
@@ -581,6 +580,10 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     # The top panel is the half-space
     ax_voltage.add_collection(coll_half)
     ax_voltage2.add_collection(coll)
+    for ax in [ax_voltage, ax_voltage2]:
+        # Red x marks the spot
+        ax.scatter(lon_epi, lat_epi, color='r', marker='x',
+                   s=50, transform=proj_data)
 
     sm = mpl.cm.ScalarMappable(cmap=cmapV, norm=normV)
     # Set scalar mappable array
@@ -617,7 +620,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
 
     # Voltage Difference Maps
     # -----------------------
-    aspect = 8/9
+    aspect = 10/9
     fig_vdiff = plt.figure(figsize=(fig_width/2, fig_width/2*aspect),
                            constrained_layout=True)
     height_ratios = [20, 1]
@@ -717,7 +720,6 @@ def calc_specific_site(name, ts, fs):
     ax.set_title(f"Site {name}")
     ax.set_xlim(1, 1e3)
     ax.legend()
-    plt.show()
     fig.savefig(f"../figs/{name}_E.png", bbox_inches='tight')
 
 
@@ -761,8 +763,8 @@ def main():
     ts = np.arange(ntimes) / fs  # time steps
 
     # TODO: Remove to save data at specific sites
-    # calc_specific_site("SFM06", ts, fs)
-    # calc_specific_site("RF111", ts, fs)
+    calc_specific_site("SFM06", ts, fs)
+    calc_specific_site("RF111", ts, fs)
 
     B_sites_E3A, B_sites_E3B = calc_B(MT_xys[:, 0], MT_xys[:, 1], ts)
     # Add together for total B field
@@ -771,31 +773,6 @@ def main():
     E_half_sites = calc_E_halfspace(B_sites, fs)
     # return
     animate_fields(E_sites, E_half_sites, ts, fs)
-    return
-
-    fig1 = plt.figure(figsize=(fig_width, fig_height/2))
-    gs1 = fig1.add_gridspec(ncols=1, nrows=2, height_ratios=[1, 1])
-    ax1 = fig1.add_subplot(gs1[0], projection=projection)
-    ax2 = fig1.add_subplot(gs1[1], projection=projection)
-
-    plot_E3_Bfield_map_sites(ax1, ax2)
-
-    plt.subplots_adjust(left=0.11, right=0.99, top=0.9, bottom=0.05)
-    plt.savefig('../figs/figXX_Bfields_sites.png')
-
-    fig2 = plt.figure(figsize=(fig_width, fig_height/2))
-    gs2 = fig2.add_gridspec(ncols=1, nrows=2, height_ratios=[1, 1])
-    ax3 = fig2.add_subplot(gs2[0], projection=projection)
-    ax4 = fig2.add_subplot(gs2[1], projection=projection)
-    plot_E3_Efield_map_sites(ax3, ax4, B_sites, E_sites)
-
-    plt.subplots_adjust(left=0.11, right=0.99, top=0.9, bottom=0.05)
-    plt.savefig('../figs/figXX_Efields_sites.png')
-
-    plt.show()
-
-    plt.close(fig1)
-    plt.close(fig2)
 
 
 if __name__ == "__main__":
