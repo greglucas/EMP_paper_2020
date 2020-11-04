@@ -15,7 +15,7 @@ import shapely
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
-from plot_figXX_Bfields import Br_E3A, Br_E3B, Bt_E3A, Bt_E3B, lat_epi, lon_epi
+from plot_fig_Bfields import Br_E3A, Br_E3B, Bt_E3A, Bt_E3B, lat_epi, lon_epi
 
 proj_data = ccrs.PlateCarree()
 projection = ccrs.LambertConformal(central_latitude=30, central_longitude=-96)
