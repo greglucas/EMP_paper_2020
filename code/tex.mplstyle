@@ -1,13 +1,13 @@
-xtick.labelsize: 18
-ytick.labelsize: 18
-font.size: 18
+xtick.labelsize: 10
+ytick.labelsize: 10
+font.size: 10
 # figure.autolayout: True
-figure.figsize: 7.2,4.45
-axes.titlesize : 18
-axes.labelsize : 18
+figure.figsize: 7.2, 4.45
+axes.titlesize : 10
+axes.labelsize : 10
 lines.linewidth : 1
 lines.markersize : 6
-legend.fontsize: 18
+legend.fontsize: 10
 text.usetex: True
 font.family: serif
 font.serif: [Times New Roman, Times]
