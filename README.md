@@ -1,12 +1,14 @@
-# Down to Earth with nuclear electromagnetic pulse: Realistic surface impedances for mapping E3 geoelectric hazards
+# Down to Earth With Nuclear Electromagnetic Pulse: Realistic Surface Impedance Affects Mapping of the E3 Geoelectric Hazard
 
-Authors: J. J. Love, G. M. Lucas, B. S. Murphy,  A. P. A. Bedrosian, A. Kelbert, E. J. Rigler
+This repository contains the code used to produce the results in the paper.
+
+Authors: J. J. Love, G. M. Lucas, B. S. Murphy,  A. P. A. Bedrosian, E. J. Rigler, A. Kelbert
 
 Code Authors: G. M. Lucas, B. S. Murphy, E. J. Rigler
 
-## doi: XXX
+## Citation
 
-This repository contains the code used to produce the results in the paper.
+> Love, J. J., Lucas, G. M., Murphy, B. S., Bedrosian, P. A., Rigler, E. J., & Kelbert, A. (2021). Down to Earth with nuclear electromagnetic pulse: Realistic surface impedance affects mapping of the E3 geoelectric hazard. Earth and Space Science, 8, e2021EA001792. https://doi.org/10.1029/2021EA001792
 
 ## Notes
 
