@@ -213,6 +213,14 @@ def calc_E_sites(sites, B_sites, fs):
         E_sites[:, i, 0] = Ex
         E_sites[:, i, 1] = Ey
 
+    t0 = int(0.5*fs)
+    t1 = int(2*fs)
+    Eh = np.sqrt(E_sites[:, :, 0]**2 + E_sites[:, :, 1]**2)
+    with open('../data/max_site_Efields.csv', 'w') as temp_file:
+        print("site,0.5 seconds,2 seconds")
+        for i, site in enumerate(sites.values()):
+            print(f"{site.name},{Eh[t0, i]},{Eh[t1, i]}", file=temp_file)
+
     # Force E to 0 at t=0
     E_sites[0, :, :] = 0
     # Change to V/km
@@ -346,9 +354,9 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
     ax_time.plot(ts + 1, B_E3A, c='r')
     ax.text(120, 1700, '$B^A(t)$', color='r')
     ax_time.plot(ts + 1, B_E3B, c='b')
-    ax.text(65, -750, '$B^B(t)$', color='b')
+    ax.text(50, -800, '$B^B(t)$', color='b')
     ax_time.plot(ts + 1, B_E3A + B_E3B, c='k')
-    ax.text(10, 600, '$B(t)$', color='k')
+    ax.text(16, 600, '$B(t)$', color='k')
     time_line = ax_time.axvline(0, c='k')
     # zero line
     ax_time.axhline(0, c='gray', zorder=-5)
@@ -397,6 +405,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
                                 norm=normB, cmap=cmapB,
                                 alpha=.5,
                                 linewidth=0)
+    pcol.set_in_layout(False)
     cb = plt.colorbar(pcol, cax=ax_cbar, orientation='horizontal')
     cb.set_label(label='$B_h$ (nT)', fontsize=12)
     cb.ax.tick_params(labelsize=12)
@@ -418,6 +427,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
                        color='w',
                        units='inches',
                        scale=5000)
+    quiv_B.set_in_layout(False)
 
     # Red x marks the spot
     ax.scatter(lon_epi, lat_epi, color='r', marker='x',
@@ -465,6 +475,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
                            transform=proj_data,
                            units='inches',
                            scale=scaleE)
+    quiv_Egrid.set_in_layout(False)
 
     # Red x marks the spot
     ax.scatter(lon_epi, lat_epi, color='r', marker='x',
@@ -496,6 +507,7 @@ def animate_fields(E_sites, E_half_sites, ts, fs):
                        transform=proj_data,
                        units='inches',
                        scale=scaleE)
+    quiv_E.set_in_layout(False)
 
     # Voltages
     # --------
@@ -770,6 +782,7 @@ def main():
     # Add together for total B field
     B_sites = B_sites_E3A + B_sites_E3B
     E_sites = calc_E_sites(MT_sites, B_sites, fs)
+    # return
     E_half_sites = calc_E_halfspace(B_sites, fs)
     # return
     animate_fields(E_sites, E_half_sites, ts, fs)
